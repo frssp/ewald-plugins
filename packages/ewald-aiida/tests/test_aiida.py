@@ -19,13 +19,15 @@ def _count():
     ("aiida:3F9C2E1A", AiidaURI("3f9c2e1a")),
     ("aiida:1234/relax/output_structure", AiidaURI(1234, ("relax", "output_structure"))),
     ("aiida:my-prof/8/output_band", AiidaURI(8, ("output_band",), "my-prof")),
+    ("aiida://nurion/1234", AiidaURI(1234, host="nurion")),
+    ("aiida://sim-agent@nurion:2222/prof/3f9c/relax", AiidaURI("3f9c", ("relax",), "prof", "nurion", "sim-agent", 2222)),
 ])
 def test_parse(text, uri):
     assert parse(text) == uri
     assert parse(str(uri)) == uri
 
 
-@pytest.mark.parametrize("bad", ["aiida:", "aiida:prof", "aiida:prof/x/1", "POSCAR"])
+@pytest.mark.parametrize("bad", ["aiida:", "aiida:prof", "aiida:prof/x/1", "POSCAR", "aiida://host", "aiida://a@/1"])
 def test_parse_errors(bad):
     with pytest.raises(ValueError):
         parse(bad)
@@ -105,7 +107,7 @@ def test_phonopy_workflow_gives_phonon_modes(graph):
 
 def test_tree_and_find(graph):
     text = ewald_aiida.tree(graph["relax"].pk)
-    assert f"PwRelaxWorkChain <{graph['relax'].pk}>" in text and "opens trajectory" in text
+    assert f"PwRelaxWorkChain <{graph['relax'].pk}>" in text and "-> opens trajectory" in text
     assert f"iteration_02: PwCalculation <{graph['calc2'].pk}>" in text
     assert "output_trajectory: TrajectoryData" in text and "2 steps" in text
     rows = ewald_aiida.find("Pw%")
@@ -136,3 +138,110 @@ def test_kinds_are_kept(graph):
     s.store()
     data = load(f"aiida:{s.uuid}").compute(0)
     assert list(data.types) == ["Fe", "Fe"] and list(data.particles["Kind"]) == ["Fe1", "Fe2"]
+
+
+# ----------------------------------------------------------------------- remote
+class FakeHost:
+    """Runs the exporter command the way a remote shell would, in this process (the profile
+    is the test profile), and records the commands."""
+
+    def __init__(self, verdi_python="/opt/aiida/bin/python"):
+        self.commands = []
+        self.verdi_python = verdi_python
+
+    def run(self, command, timeout=600):
+        import contextlib
+        import io
+        import shlex
+        import sys
+
+        self.commands.append(command)
+        if command.startswith("bash -lc"):
+            return 0, f"#!{self.verdi_python}\n".encode()
+        python, flag, code, *args = shlex.split(command)
+        assert flag == "-c" and python == self.verdi_python
+        out = io.BytesIO()
+
+        class Stdout:
+            buffer = out
+
+        old = sys.argv
+        sys.argv = ["-c", *args]
+        status = 0
+        try:
+            with contextlib.redirect_stdout(Stdout()):
+                exec(code, {"__name__": "__main__"})
+        except SystemExit as exc:
+            status = exc.code
+        finally:
+            sys.argv = old
+        return status, out.getvalue()
+
+
+@pytest.fixture
+def fake_host(monkeypatch, tmp_path):
+    from ewald_aiida import transport
+
+    host = FakeHost()
+    monkeypatch.setattr(transport, "_connection", lambda uri: host)
+    monkeypatch.setattr(transport, "_PYTHON", {})
+    monkeypatch.setenv("EWALD_CACHE_DIR", str(tmp_path / "cache"))
+    return host
+
+
+def test_remote_workflow_over_ssh(graph, fake_host):
+    relax = graph["relax"]
+    local = load(f"aiida:{relax.pk}")
+    pipe = load(f"aiida://sim-agent@nurion/{relax.pk}")
+    assert pipe.num_frames == local.num_frames == 5
+    a, b = pipe.compute(4), local.compute(4)
+    np.testing.assert_allclose(a.positions, b.positions)
+    np.testing.assert_allclose(a.particles["Force"], b.particles["Force"])
+    assert a.attributes["AiiDA"]["host"] == "nurion" and a.attributes["AiiDA"]["calc_pk"] == graph["calc2"].pk
+    assert a.attributes["fermi_energy"] == 6.1
+    assert fake_host.commands[0].startswith("bash -lc")          # found verdi's python once
+    assert "bundle" in fake_host.commands[1] and "/opt/aiida/bin/python" in fake_host.commands[1]
+    bands = load(f"aiida://nurion/{graph['bands_calc'].pk}").compute(0)
+    assert bands.attributes["Electronic Structure"].eigenvalues.shape == (1, 13, 8)
+
+
+def test_remote_phonons_structures_and_browsing(graph, fake_host):
+    pytest.importorskip("ewald_phonopy")
+    modes = load(f"aiida://nurion/{graph['phonon_wf'].pk}", frames=4).compute(0).attributes["Phonon Modes"]
+    assert [t[1] for t in modes.ticks] == ["GAMMA", "X", "W|K", "GAMMA"]
+    s = load(f"aiida://nurion/{graph['relax'].pk}/iteration_01/output_structure").compute(0)
+    np.testing.assert_allclose(s.positions[1, 0], 5.43 / 4 + 0.01)
+    assert "iteration_02: PwCalculation" in ewald_aiida.tree(f"aiida://nurion/{graph['relax'].pk}")
+    rows = ewald_aiida.find("PhonopyWorkChain", host="nurion")
+    assert rows[0]["uri"] == f"aiida://nurion/{graph['phonon_wf'].pk}"
+
+
+def test_remote_errors_and_cache(graph, fake_host):
+    with pytest.raises(LookupError, match="on nurion: LookupError: node 999999"):
+        load("aiida://nurion/999999")
+    uuid = graph["final"].uuid
+    load(f"aiida://nurion/{uuid}")
+    n = len(fake_host.commands)
+    assert load(f"aiida://nurion/{uuid}").compute(0).count == 2   # a full UUID is cached
+    assert len(fake_host.commands) == n
+    load(f"aiida://nurion/{graph['final'].pk}")
+    load(f"aiida://nurion/{graph['final'].pk}")                   # a PK is asked again
+    assert len(fake_host.commands) == n + 2
+
+
+def test_exporter_runs_without_ewald():
+    """The remote side gets only export.py (as the payload): it must compile on its own and
+    import nothing of ewald."""
+    import ast
+    import base64
+    import re
+    import zlib
+
+    from ewald_aiida import transport
+
+    blob = re.search(r"b64decode\('([^']+)'\)", transport.payload())[1]
+    tree = ast.parse(zlib.decompress(base64.b64decode(blob)))
+    mods = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+    mods |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.level == 0}
+    assert not any(isinstance(n, ast.ImportFrom) and n.level for n in ast.walk(tree))
+    assert mods <= {"__future__", "aiida", "argparse", "io", "json", "numpy", "os", "sys", "tempfile"}

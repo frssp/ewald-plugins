@@ -16,6 +16,7 @@ pipe = load("aiida:myprofile/1234")                # another profile
 pipe = load("aiida:3f9c2e1a")                      # a UUID or its beginning: the same node on any machine
 pipe = load("aiida:1234/iteration_01/output_structure")   # follow links (called steps, outputs)
 pipe = load("aiida:1234", what="structures")       # trajectory | phonons | bands | structures | input
+pipe = load("aiida://sim-agent@nurion/1234")       # AiiDA on another machine, over SSH
 ```
 
 The same strings work on the command line (`ewald gui aiida:1234`, `ewald render aiida:1234`),
@@ -36,11 +37,29 @@ Every frame has `attributes["AiiDA"]` (`pk`, `uuid`, `node_type`, `label`, `proc
 `exit_status`, `view`, `output_pk`, `calc_pk`), and the numbers of the process's `Dict` outputs
 (`energy`, `fermi_energy`, ...) as attributes.
 
+## AiiDA on another machine
+
+`aiida://[user@]host[:port]/[profile/]NODE[/link...]` reads a profile on a remote host, for
+example the profile of the `sim-agent` account on a cluster. `host` can be a `~/.ssh/config`
+alias, and keys, ssh-agent, jump hosts and known_hosts work as for EWALD's other remote files.
+Nothing is installed on the host: EWALD sends the read-only exporter
+([export.py](src/ewald_aiida/export.py), standard library, numpy, aiida-core) as `python -c`,
+using the Python that `verdi` runs with there (found through a login shell, so conda and
+`module load` setups apply). Pass `python="/path/to/env/bin/python"` or set
+`EWALD_AIIDA_PYTHON` when that guess is wrong. Results come back as one compressed npz;
+nodes named by full UUID are cached locally once their process has finished.
+
+To read another account's profile you need that account's SSH login (simplest), or read
+access to its `~/.aiida` configuration, its file repository and its database (a read-only
+PostgreSQL role) from your own account.
+
 ## Browsing
 
 ```bash
 python -m ewald_aiida tree 1234              # called processes and outputs, with PKs
 python -m ewald_aiida find --process 'Pw%'   # recent processes; --ok, --json, --profile
+python -m ewald_aiida find --host sim-agent@nurion --process 'Phonopy%'
+python -m ewald_aiida tree aiida://sim-agent@nurion/1234
 ```
 
 ```text
@@ -62,4 +81,5 @@ role. An `aiida:` string in a notebook you received reads from your own profiles
 
 `pytest packages/ewald-aiida/tests` builds a throwaway in-memory SQLite profile with a relaxation
 WorkChain (two restarts), an electronic band structure and an aiida-phonopy result (Cu, EMT
-forces), and checks that loading changes nothing in the database.
+forces), and checks that loading changes nothing in the database. The remote path is tested by
+running the exact `python -c` command the SSH host would get against that profile.

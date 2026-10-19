@@ -18,7 +18,7 @@ release is and checks that it loads.
 |---|---|---|
 | [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonopy/VASP phonon readers, `PhononMode` |
 | [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
-| [ewald-aiida](packages/ewald-aiida) | `aiida` | `load("aiida:1234")`: AiiDA structures, trajectories, bands, workflows and aiida-phonopy results by PK/UUID (read-only) |
+| [ewald-aiida](packages/ewald-aiida) | `aiida` | `load("aiida:1234")`: AiiDA structures, trajectories, bands, workflows and aiida-phonopy results by PK/UUID, local or over SSH (read-only) |
 
 A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z`) with
 `#subdirectory=packages/ewald-<name>`, and bumps `version` in the entry, `pyproject.toml` and
