@@ -63,8 +63,8 @@
     "reader",
     "modifier"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@2c3e21ba26917c70fc918aef30b9aa264fee7346#subdirectory=packages/ewald-phonopy",
-   "version": "0.2.0",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@f937c9064a6dd25aadfd6788b6cb5d66e2317ebc#subdirectory=packages/ewald-phonopy",
+   "version": "0.2.1",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-phonopy",
