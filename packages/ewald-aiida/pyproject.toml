@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ewald-aiida"
+version = "0.1.0"
+description = "Open AiiDA results (structures, trajectories, bands, phonopy) in EWALD by PK: load(\"aiida:1234\")"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["ewald>=0.1", "numpy", "aiida-core>=2.4"]
+
+[project.optional-dependencies]
+phonopy = ["ewald-phonopy @ git+https://github.com/frssp/ewald-plugins@a38f9c7eec8a0e3daa863516d0f2decdf94cb9ce#subdirectory=packages/ewald-phonopy", "aiida-phonopy"]
+test = ["pytest"]
+
+[project.entry-points."ewald.plugins"]
+aiida = "ewald_aiida"
+
+[project.entry-points."ewald.readers"]
+aiida = "ewald_aiida.reader:AiidaReader"
+
+[project.scripts]
+ewald-aiida = "ewald_aiida.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ewald_aiida = ["ewald-plugin.toml"]
