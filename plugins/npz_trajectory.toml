@@ -1,0 +1,9 @@
+id = "npz_trajectory"
+name = "NumPy .npz trajectories"
+summary = "Reads trajectories stored as .npz archives (positions, types, cell, forces, energies)"
+kinds = ["reader"]
+source = "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/npz_trajectory.py"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald/tree/main/examples/plugins"

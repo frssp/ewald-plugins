@@ -1,0 +1,35 @@
+name: check index
+# Manual runs only, like frssp/ewald (Actions minutes); add `pull_request:` when they are back.
+on:
+  workflow_dispatch:
+    inputs:
+      ids:
+        description: "plugin ids to validate (empty: every entry)"
+        required: false
+        default: ""
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Check entries and index.json
+        run: |
+          pip install -q pytest
+          python scripts/build_index.py --check
+          python -m pytest -q tests
+      - name: Install ewald
+        env:
+          GITHUB_TOKEN: ${{ secrets.EWALD_TOKEN }}   # read access to frssp/ewald (private)
+        run: |
+          sudo apt-get install -y -q g++
+          pip install -q "git+https://x-access-token:${GITHUB_TOKEN}@github.com/frssp/ewald@main"
+      - name: Install and load every entry
+        env:
+          GITHUB_TOKEN: ${{ secrets.EWALD_TOKEN }}
+        run: python scripts/validate.py ${{ github.event.inputs.ids }}

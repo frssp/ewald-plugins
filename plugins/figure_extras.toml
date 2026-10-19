@@ -1,0 +1,9 @@
+id = "figure_extras"
+name = "Figure extras"
+summary = "A charge-difference color map, the Group style theme and an inset g(r) overlay"
+kinds = ["colormap", "theme", "overlay"]
+source = "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/figure_extras.py"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald/tree/main/examples/plugins"
