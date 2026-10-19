@@ -23,6 +23,11 @@ pipe.modifiers.append(PhononMode(qpoint=50, band=3, amplitude=0.3))
 | `vasp-phonon` | OUTCAR of an IBRION = 5-8 run (Gamma-point modes) |
 | `phonopy-fc` | `phonopy.yaml` / `phonopy_params.yaml` / `phonopy_disp.yaml` with `FORCE_SETS` or `FORCE_CONSTANTS`: phonopy computes the bands with eigenvectors along the seekpath path |
 
+A `phonopy.Phonopy` with force constants (for example aiida-phonopy's
+`get_phonopy_instance()`) becomes a pipeline with `from_phonopy(phonon, frames=24, band_path=None,
+labels=None)`, the seekpath path or your own segments; `reader_from_phonopy` gives the reader and
+`modes_from_phonopy` the `PhononModes`.
+
 The GUI draws the "Phonon Bands" table as a band structure (click a band to play that mode)
 and opens phonon files playing a mode. Manual: EWALD's docs/user/phonons.md.
 

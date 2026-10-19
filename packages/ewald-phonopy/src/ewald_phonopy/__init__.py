@@ -7,6 +7,9 @@ with ``FORCE_SETS`` / ``FORCE_CONSTANTS``), for which phonopy computes the band 
 eigenvectors along the seekpath path. Modifier: ``PhononMode`` animates one mode (frame ``f`` of
 ``N`` is phase ``2 pi f / N``), with the mode pattern as arrows.
 
+From Python, ``from_phonopy(phonon)`` turns a ``phonopy.Phonopy`` with force constants (for
+example from aiida-phonopy) into a pipeline playing a mode.
+
 Once installed, ``import_file("band.yaml")`` and ``from ewald.modifiers import PhononMode`` work
 as before this support moved out of ewald's core. The GUI draws the "Phonon Bands" table as a
 band structure (click a band to play that mode) and opens phonon files playing a mode.
@@ -15,12 +18,13 @@ from pathlib import Path
 
 from .modifier import PhononMode
 from .phonon import PhononModes, read_modes, read_outcar_modes, read_phonopy_yaml
-from .reader import (PhononReader, PhonopyForceConstantsReader, PhonopyYamlReader, VaspPhononReader,
-                     modes_from_phonopy)
+from .reader import (PhononReader, PhonopyForceConstantsReader, PhonopyYamlReader, VaspPhononReader, from_phonopy,
+                     modes_from_phonopy, reader_from_phonopy)
 
 #: Example files that ship with the plugin (``Cu3Au_band.yaml``: L1_2 Cu3Au bands with eigenvectors).
 EXAMPLES = Path(__file__).parent / "examples"
 
 __all__ = ["PhononMode", "PhononModes", "PhononReader", "PhonopyYamlReader", "VaspPhononReader",
-           "PhonopyForceConstantsReader", "modes_from_phonopy", "read_modes", "read_outcar_modes",
+           "PhonopyForceConstantsReader", "modes_from_phonopy", "from_phonopy", "reader_from_phonopy", "read_modes",
+           "read_outcar_modes",
            "read_phonopy_yaml", "EXAMPLES"]

@@ -75,3 +75,21 @@ def test_reader_matches_phonopy_band_yaml(cu_params):
     pipe.modifiers.append(PhononMode(qpoint=len(ours.qpoints) // 2, band=2))
     d = pipe.compute(3)
     assert d.count >= 1 and np.isfinite(d.positions).all()
+
+
+def test_from_phonopy_object(cu_params):
+    import phonopy
+
+    from ewald_phonopy import from_phonopy
+
+    params, band = cu_params
+    ph = phonopy.load(params, log_level=0)
+    pipe = from_phonopy(ph, frames=8)
+    assert pipe.source.num_frames == 8 and [type(m).__name__ for m in pipe.modifiers] == ["PhononMode"]
+    data = pipe.compute(2)
+    assert "Phonon Mode" in data.vectors and "Phonon.Frequency" in data.attributes
+    custom = from_phonopy(ph, band_path=[[[0, 0, 0], [0.5, 0, 0.5]]], labels=["G", "X"], npoints=11, mode=False)
+    modes = custom.compute(0).attributes["Phonon Modes"]
+    assert modes.frequencies.shape == (11, 3) and [t[1] for t in modes.ticks] == ["G", "X"]
+    with pytest.raises(ValueError, match="force constants"):
+        from_phonopy(phonopy.Phonopy(ph.unitcell, supercell_matrix=np.eye(3) * 2))

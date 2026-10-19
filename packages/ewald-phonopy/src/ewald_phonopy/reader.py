@@ -95,10 +95,22 @@ def sniff(path) -> bool:
         return False
 
 
-def modes_from_phonopy(phonon, npoints: int = 51, source: str = "") -> PhononModes:
-    """Band structure with eigenvectors of a ``phonopy.Phonopy`` that has force constants,
-    along the seekpath path of its primitive cell."""
-    phonon.auto_band_structure(npoints=npoints, with_eigenvectors=True)
+def modes_from_phonopy(phonon, npoints: int = 51, source: str = "", band_path=None,
+                       labels=None) -> PhononModes:
+    """Band structure with eigenvectors of a ``phonopy.Phonopy`` that has force constants, along
+    the seekpath path of its primitive cell, or along ``band_path``: segments of q-points in
+    reduced coordinates of the primitive reciprocal cell, e.g. ``[[[0, 0, 0], [0.5, 0, 0.5]],
+    [[0.5, 0.5, 0.5], [0, 0, 0]]]`` (a break between segments), with ``labels`` for the ends."""
+    if phonon.force_constants is None:
+        raise ValueError("the Phonopy object has no force constants (produce_force_constants first)")
+    if band_path is None:
+        phonon.auto_band_structure(npoints=npoints, with_eigenvectors=True)
+    else:
+        from phonopy.phonon.band_structure import get_band_qpoints_and_path_connections
+
+        qpoints, connections = get_band_qpoints_and_path_connections(band_path, npoints=npoints)
+        phonon.run_band_structure(qpoints, path_connections=connections, labels=labels,
+                                  with_eigenvectors=True)
     bs = phonon.get_band_structure_dict()
     prim = phonon.primitive
     natoms = len(prim)
@@ -147,3 +159,36 @@ class PhonopyForceConstantsReader(PhononReader):
         self.modes = modes_from_phonopy(phonon, npoints=npoints,
                                         source=f"phonopy {os.path.basename(self.path)}")
         self._table = self.modes.table()
+
+
+def reader_from_phonopy(phonon, frames: int = 24, npoints: int = 51, band_path=None, labels=None,
+                        source: str = "") -> PhononReader:
+    """A :class:`PhononReader` over a ``phonopy.Phonopy`` with force constants (e.g.
+    aiida-phonopy's ``get_phonopy_instance()``): its band structure with eigenvectors as a
+    looping trajectory of ``frames`` frames. ``band_path``/``labels`` as in
+    :func:`modes_from_phonopy`."""
+    reader = PhononReader.__new__(PhononReader)
+    reader.path = source or "phonopy"
+    reader.frames = int(frames)
+    if reader.frames < 1:
+        raise ValueError("frames must be at least 1")
+    reader.modes = modes_from_phonopy(phonon, npoints=npoints, source=source or "phonopy object",
+                                      band_path=band_path, labels=labels)
+    reader._table = reader.modes.table()
+    return reader
+
+
+def from_phonopy(phonon, frames: int = 24, npoints: int = 51, band_path=None, labels=None,
+                 source: str = "", mode: bool = True):
+    """A ``Pipeline`` over a ``phonopy.Phonopy`` with force constants, as ``import_file`` gives
+    for a phonon file: ``frames`` frames make one period, and with ``mode`` a
+    :class:`~ewald_phonopy.PhononMode` with its default mode is already added."""
+    from ewald import Pipeline, StaticSource
+
+    from .modifier import PhononMode
+
+    reader = reader_from_phonopy(phonon, frames, npoints, band_path, labels, source)
+    pipe = Pipeline(StaticSource([reader.read(i) for i in range(len(reader))]))
+    if mode:
+        pipe.modifiers.append(PhononMode())
+    return pipe
