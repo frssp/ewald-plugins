@@ -31,7 +31,7 @@ from build_index import ROOT, check_entry  # noqa: E402
 
 _RAW = re.compile(r"https://raw\.githubusercontent\.com/([\w.-]+/[\w.-]+)/([\w.\-]+)/(.+)$")
 _PLURAL = {"modifier": "modifiers", "reader": "readers", "writer": "writers", "visual": "visuals",
-           "overlay": "overlays", "colormap": "colormaps", "theme": "themes", "tool": "tools"}
+           "overlay": "overlays", "colormap": "colormaps", "theme": "themes", "tool": "tools", "ui_theme": "ui_themes"}
 
 
 def fetch(url: str, local: dict) -> bytes:
