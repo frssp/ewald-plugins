@@ -1,10 +1,6 @@
 """The ``aiida:`` reader: ``load("aiida:1234")``."""
 from __future__ import annotations
 
-import hashlib
-import os
-import tempfile
-
 from ewald.io.base import FrameReader
 
 from . import nodes
@@ -78,42 +74,23 @@ def _empty():
 
 # ----------------------------------------------------------------------- phonons
 def _phonon_reader(node, items, frames: int):
-    """Phonon modes of an aiida-phonopy result, read by EWALD's ``phonopy`` reader (built in,
-    or the ewald-phonopy plugin): the force constants become a phonopy object, whose band
-    structure with eigenvectors is written to a cached band.yaml."""
-    from ewald import plugins
-
+    """Phonon modes of an aiida-phonopy result through ewald-phonopy: the force constants
+    become a ``phonopy.Phonopy``, whose band structure (along the path of the workflow's
+    ``phonon_bands`` output, else seekpath's) is a looping trajectory."""
     try:
-        reader = plugins.find_reader("band.yaml", "phonopy")
-    except Exception:
-        reader = None
-    if reader is None or reader.name != "phonopy":
-        raise ImportError("phonon modes need the ewald-phonopy plugin: pip install ewald-aiida[phonopy]")
+        from ewald_phonopy import reader_from_phonopy
+    except ImportError as exc:
+        raise ImportError("phonon modes need the ewald-phonopy plugin: pip install "
+                          "'git+https://github.com/frssp/ewald-plugins#subdirectory=packages/ewald-phonopy'") from exc
     _, data, source = items[-1]
-    path = _band_yaml(node, data, source)
-    return reader.open(path, format="phonopy", frames=frames)
-
-
-def _band_yaml(node, data, source) -> str:
-    cache = os.path.join(tempfile.gettempdir(), "ewald-aiida")
-    os.makedirs(cache, exist_ok=True)
-    path = os.path.join(cache, hashlib.sha1(f"{node.uuid}:{data.uuid}".encode()).hexdigest()[:16] + "-band.yaml")
-    if os.path.exists(path):
-        return path
-    phonon = phonopy_instance(data, node if nodes._is_process(node) else source)
-    bands = _phonon_bands(node if nodes._is_process(node) else source)   # the workflow's own path
+    top = node if nodes._is_process(node) else source
+    phonon = phonopy_instance(data, top)
+    path, labels = None, None
+    bands = _phonon_bands(top)
     if bands is not None:
-        qpoints, labels, connections = _bands_path(bands)
-        phonon.run_band_structure(qpoints, with_eigenvectors=True, labels=labels, path_connections=connections)
-    else:
-        try:
-            phonon.auto_band_structure(npoints=31, with_eigenvectors=True)
-        except Exception:  # seekpath missing: Gamma only
-            phonon.run_band_structure([[[0, 0, 0], [0, 0, 0]]], with_eigenvectors=True)
-    tmp = path + ".tmp"
-    phonon.write_yaml_band_structure(filename=tmp)
-    os.replace(tmp, path)
-    return path
+        path, labels = _bands_path(bands)
+    return reader_from_phonopy(phonon, frames=frames, band_path=path, labels=labels,
+                               source=f"AiiDA {data.__class__.__name__} {data.pk}")
 
 
 def phonopy_instance(data, source=None):
@@ -153,21 +130,21 @@ def _phonon_bands(source):
 
 
 def _bands_path(bands):
-    """phonopy band segments, labels and path connections from the k-points and labels of a
-    ``BandsData``: a segment runs between two labelled points; two labels on neighbouring
-    k-points mark a jump in the path."""
+    """``(band_path, labels)`` for phonopy from the k-points and labels of a ``BandsData``:
+    paths of end points (connected within a path); two labels on neighbouring k-points mark
+    a jump between paths."""
     import numpy as np
 
     k = np.asarray(bands.get_kpoints(), float)
     marks = sorted(dict(bands.labels or []).items())
     spans = [(i0, i1, l0, l1) for (i0, l0), (i1, l1) in zip(marks, marks[1:]) if i1 > i0 + 1]
     if not spans:
-        return [k], None, [False]
-    segments = [k[i0:i1 + 1] for i0, i1, _, _ in spans]
-    connections = [a[1] == b[0] for a, b in zip(spans, spans[1:])] + [False]
-    labels = []
-    for j, (_, _, l0, l1) in enumerate(spans):
-        if j == 0 or not connections[j - 1]:
+        return None, None
+    paths, labels = [], []
+    for j, (i0, i1, l0, l1) in enumerate(spans):
+        if j == 0 or spans[j - 1][1] != i0:
+            paths.append([k[i0].tolist()])
             labels.append(l0)
+        paths[-1].append(k[i1].tolist())
         labels.append(l1)
-    return segments, labels, connections
+    return paths, labels

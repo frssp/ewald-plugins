@@ -29,7 +29,7 @@ string. Prefer the UUID form for notebooks you share, since PKs differ between d
 | `StructureData` | one frame (kinds such as `Fe1`/`Fe2` kept in the `Kind` property) |
 | `TrajectoryData` | one frame per step; forces and velocities as `Force`/`Velocity`, per-step arrays (energy, ...) as attributes, `Timestep`/`Time` |
 | electronic `BandsData` | the structure, with `Electronic Structure`, the `Bands` table, Fermi energy and band gap (as from vasprun.xml) |
-| aiida-phonopy `PhonopyData`/`ForceConstantsData` | phonon modes through the `phonopy` reader of ewald-phonopy, along the path of the workflow's `phonon_bands` output (else seekpath) |
+| aiida-phonopy `PhonopyData`/`ForceConstantsData` | phonon modes through ewald-phonopy (`reader_from_phonopy`), along the path of the workflow's `phonon_bands` output (else seekpath) |
 | a process: CalcJob, WorkChain, WorkGraph | the first of: its trajectory (else its called calculations' trajectories, joined in call order), phonons, bands, structures, input structure |
 
 Every frame has `attributes["AiiDA"]` (`pk`, `uuid`, `node_type`, `label`, `process_label`,
