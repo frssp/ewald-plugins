@@ -35,5 +35,5 @@ jobs:
         run: python scripts/validate.py ${{ github.event.inputs.ids }}
       - name: Test first-party packages
         run: |
-          pip install -q -e packages/ewald-phonopy -e packages/ewald-plumed
-          python -m pytest -q packages/ewald-phonopy/tests packages/ewald-plumed/tests
+          pip install -q -e packages/ewald-phonopy -e packages/ewald-plumed -e packages/ewald-aiida aiida-phonopy
+          python -m pytest -q packages/ewald-phonopy/tests packages/ewald-plumed/tests packages/ewald-aiida/tests
