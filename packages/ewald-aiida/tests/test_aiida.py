@@ -99,7 +99,7 @@ def test_phonopy_workflow_gives_phonon_modes(graph):
     assert freqs.max() == pytest.approx(7.3, abs=1.0)            # Cu EMT, THz
     assert data.attributes["AiiDA"]["view"] == "phonons"
     np.testing.assert_allclose(modes.qpoints[-1], [0, 0, 0])     # the path of the phonon_bands output
-    assert [t[1] for t in modes.ticks][:2] == ["GAMMA", "X"]       # (labels after a break: ewald-phonopy)
+    assert [t[1] for t in modes.ticks] == ["GAMMA", "X", "W|K", "GAMMA"]
     assert _count() == before
 
 
