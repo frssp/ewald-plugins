@@ -1,0 +1,10 @@
+id = "aiida"
+name = "AiiDA results"
+summary = "Open AiiDA nodes by PK or UUID: load(\"aiida:1234\") for structures, trajectories, bands, workflows and aiida-phonopy results"
+kinds = ["reader"]
+source = "pip:git+https://github.com/frssp/ewald-plugins@268fe033260503ff7d6900a915d1ab690fa0729c#subdirectory=packages/ewald-aiida"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-aiida"
+description = "Reads the AiiDA profile you use with verdi (local SQLite or PostgreSQL; no daemon or RabbitMQ). A WorkChain or WorkGraph PK opens its trajectory (restarts joined), phonons, bands or structures; aiida-phonopy results become phonon modes through ewald-phonopy (pip install 'ewald-aiida[phonopy]'). python -m ewald_aiida tree/find browses the provenance graph. Read-only. Phonons need ewald-phonopy >= 0.2. Needs an EWALD with reader schemes (after 2026-10-19)."
