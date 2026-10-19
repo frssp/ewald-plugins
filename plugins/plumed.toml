@@ -1,0 +1,10 @@
+id = "plumed"
+name = "PLUMED collective variables"
+summary = "Collective variables from PLUMED over a trajectory, COLVAR files and metadynamics free energy surfaces"
+kinds = ["modifier", "tool"]
+source = "pip:git+https://github.com/frssp/ewald-plugins@ewald-plumed-v0.1.0#subdirectory=packages/ewald-plumed"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-plumed"
+description = "Plumed runs a plumed.dat over the trajectory through PLUMED's MD-engine interface (values match plumed driver); LoadColvar aligns an existing COLVAR with the frames; FreeEnergySurface sums a HILLS file as plumed sum_hills does. Adds the Claude tools compute_plumed_cvs and read_plumed_output. Plumed needs the PLUMED library and its Python binding (conda install -c conda-forge plumed py-plumed); the rest works without. Was part of EWALD before 2026-10-19."

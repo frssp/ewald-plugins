@@ -9,6 +9,20 @@ This works the way Open VSX's `publish-extensions`, Homebrew taps and conda-forg
 do. A plugin's code stays in its own repository. This repository only records where each
 release is and checks that it loads.
 
+## First-party plugins
+
+`packages/` holds plugins maintained with EWALD itself, for support tied to one outside code that
+used to be part of EWALD's core:
+
+| Package | Plugin id | Adds |
+|---|---|---|
+| [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonopy/VASP phonon readers, `PhononMode` |
+| [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
+
+They are released by tagging `ewald-<name>-vX.Y.Z` and pointing the entry's `source` at that tag
+with `#subdirectory=packages/ewald-<name>`. Their tests run against an installed EWALD:
+`pip install -e packages/ewald-phonopy && pytest packages/ewald-phonopy/tests`.
+
 ## Adding a plugin
 
 1. Give the plugin a manifest so that EWALD knows its id and the versions it supports. A
@@ -20,7 +34,7 @@ release is and checks that it loads.
    id = "cp2k"                       # = the plugin's id in EWALD (`ewald plugins`)
    name = "CP2K formats"
    summary = "Reads CP2K -pos-*.xyz trajectories"
-   kinds = ["reader"]                # modifier reader writer visual overlay colormap theme
+   kinds = ["reader"]                # modifier reader writer visual overlay colormap theme tool
    source = "pip:git+https://github.com/OWNER/ewald-cp2k@v0.2.0"
    version = "0.2.0"
    requires_ewald = ">=0.1"

@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ewald-plumed"
+version = "0.1.0"
+description = "PLUMED in EWALD: collective variables over a trajectory, COLVAR files, HILLS free energy surfaces and Claude tools"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["ewald>=0.1"]
+
+[project.optional-dependencies]
+# Plumed and compute_plumed_cvs need the PLUMED Python binding and the PLUMED library itself
+# (conda install -c conda-forge plumed py-plumed, or a build with PLUMED_KERNEL set);
+# LoadColvar, FreeEnergySurface and read_plumed_output work without them
+engine = ["plumed"]
+
+[project.entry-points."ewald.plugins"]
+plumed = "ewald_plumed"
+
+[project.entry-points."ewald.modifiers"]
+Plumed = "ewald_plumed.modifiers:Plumed"
+LoadColvar = "ewald_plumed.modifiers:LoadColvar"
+FreeEnergySurface = "ewald_plumed.modifiers:FreeEnergySurface"
+
+[project.entry-points."ewald.tools"]
+compute_plumed_cvs = "ewald_plumed.tools:compute_plumed_cvs"
+read_plumed_output = "ewald_plumed.tools:read_plumed_output"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ewald_plumed = ["ewald-plugin.toml"]

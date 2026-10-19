@@ -1,0 +1,10 @@
+id = "phonopy"
+name = "Phonons (phonopy, VASP)"
+summary = "Phonon modes from phonopy and VASP IBRION=5-8, band structures, and the PhononMode animation"
+kinds = ["reader", "modifier"]
+source = "pip:git+https://github.com/frssp/ewald-plugins@ewald-phonopy-v0.1.0#subdirectory=packages/ewald-phonopy"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-phonopy"
+description = "Reads phonopy band.yaml / mesh.yaml / qpoints.yaml with eigenvectors, VASP OUTCARs of IBRION=5-8 runs, and phonopy.yaml with FORCE_SETS or FORCE_CONSTANTS (phonopy computes the bands along the seekpath path). PhononMode animates one mode over a period with the pattern as arrows; in the GUI the band structure is a plot where clicking a band plays that mode. Installs phonopy and seekpath. Was part of EWALD before 2026-10-19."
