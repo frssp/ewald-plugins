@@ -2,7 +2,7 @@ id = "plumed"
 name = "PLUMED collective variables"
 summary = "Collective variables from PLUMED over a trajectory, COLVAR files and metadynamics free energy surfaces"
 kinds = ["modifier", "tool"]
-source = "pip:git+https://github.com/frssp/ewald-plugins@ewald-plumed-v0.1.0#subdirectory=packages/ewald-plumed"
+source = "pip:git+https://github.com/frssp/ewald-plugins@a38f9c7eec8a0e3daa863516d0f2decdf94cb9ce#subdirectory=packages/ewald-plumed"
 version = "0.1.0"
 requires_ewald = ">=0.1"
 author = "frssp"

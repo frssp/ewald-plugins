@@ -2,7 +2,7 @@ id = "phonopy"
 name = "Phonons (phonopy, VASP)"
 summary = "Phonon modes from phonopy and VASP IBRION=5-8, band structures, and the PhononMode animation"
 kinds = ["reader", "modifier"]
-source = "pip:git+https://github.com/frssp/ewald-plugins@ewald-phonopy-v0.1.0#subdirectory=packages/ewald-phonopy"
+source = "pip:git+https://github.com/frssp/ewald-plugins@a38f9c7eec8a0e3daa863516d0f2decdf94cb9ce#subdirectory=packages/ewald-phonopy"
 version = "0.1.0"
 requires_ewald = ">=0.1"
 author = "frssp"

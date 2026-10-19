@@ -19,8 +19,9 @@ used to be part of EWALD's core:
 | [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonopy/VASP phonon readers, `PhononMode` |
 | [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
 
-They are released by tagging `ewald-<name>-vX.Y.Z` and pointing the entry's `source` at that tag
-with `#subdirectory=packages/ewald-<name>`. Their tests run against an installed EWALD:
+A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z`) with
+`#subdirectory=packages/ewald-<name>`, and bumps `version` in the entry, `pyproject.toml` and
+`ewald-plugin.toml` together. Their tests run against an installed EWALD:
 `pip install -e packages/ewald-phonopy && pytest packages/ewald-phonopy/tests`.
 
 ## Adding a plugin
