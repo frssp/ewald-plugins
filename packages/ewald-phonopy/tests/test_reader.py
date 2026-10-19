@@ -93,3 +93,12 @@ def test_from_phonopy_object(cu_params):
     assert modes.frequencies.shape == (11, 3) and [t[1] for t in modes.ticks] == ["G", "X"]
     with pytest.raises(ValueError, match="force constants"):
         from_phonopy(phonopy.Phonopy(ph.unitcell, supercell_matrix=np.eye(3) * 2))
+
+
+def test_ticks_across_a_break_in_the_path():
+    from ewald_phonopy.reader import _ticks
+
+    d = [np.linspace(0, 1, 3), np.linspace(1, 2, 3), np.linspace(2, 3, 3)]
+    labels = ["G", "X", "W", "K", "G"]                      # phonopy: G-X-W | K-G
+    assert _ticks(d, [True, False, False], labels) == [(0, "G"), (1, "X"), (2, "W|K"), (3, "G")]
+    assert _ticks(d, None, ["G", "X", "L", "G"]) == [(0, "G"), (1, "X"), (2, "L"), (3, "G")]

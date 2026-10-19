@@ -95,6 +95,28 @@ def sniff(path) -> bool:
         return False
 
 
+def _ticks(distances, connections, labels) -> list[tuple[float, str]]:
+    """High-symmetry ticks of phonopy band segments. phonopy's ``labels`` has one label per
+    segment start plus, at every break in the path (``connections[i]`` False) and at the end,
+    the label of the segment's end; at a break the end and the next start share an x and
+    become one "end|start" tick."""
+    n = len(distances)
+    connections = list(connections) if connections is not None else [True] * (n - 1) + [False]
+    it = iter(labels)
+    ticks = [(float(np.asarray(distances[0])[0]), next(it, ""))]
+    for i in range(n):
+        x = float(np.asarray(distances[i])[-1])
+        if i < n - 1 and connections[i]:
+            ticks.append((x, next(it, "")))
+            continue
+        end = next(it, "")
+        if i < n - 1:
+            start = next(it, "")
+            end = end if end == start else f"{end}|{start}"
+        ticks.append((x, end))
+    return ticks
+
+
 def modes_from_phonopy(phonon, npoints: int = 51, source: str = "", band_path=None,
                        labels=None) -> PhononModes:
     """Band structure with eigenvectors of a ``phonopy.Phonopy`` that has force constants, along
@@ -119,13 +141,8 @@ def modes_from_phonopy(phonon, npoints: int = 51, source: str = "", band_path=No
     frequencies = np.concatenate([np.asarray(f, float) for f in bs["frequencies"]])
     vecs = np.concatenate([np.asarray(e) for e in bs["eigenvectors"]])          # (nq, 3N, nbands)
     eigenvectors = vecs.transpose(0, 2, 1).reshape(len(qpoints), -1, natoms, 3)
-    ticks = []
-    labels = list(getattr(phonon.band_structure, "labels", None) or [])
-    ends = [float(np.asarray(d)[0]) for d in bs["distances"]] + [float(np.asarray(bs["distances"][-1])[-1])]
-    for i, x in enumerate(ends):
-        label = labels[i] if i < len(labels) else ""
-        if not ticks or abs(ticks[-1][0] - x) > 1e-9:
-            ticks.append((x, label))
+    ticks = _ticks(bs["distances"], getattr(phonon.band_structure, "path_connections", None),
+                   list(getattr(phonon.band_structure, "labels", None) or []))
     return PhononModes(cell=Cell(np.array(prim.cell, float)), positions=np.array(prim.positions, float),
                        types=np.array(prim.symbols), masses=np.array(prim.masses, float), qpoints=qpoints,
                        frequencies=frequencies, eigenvectors=eigenvectors, distances=distances, ticks=ticks,
