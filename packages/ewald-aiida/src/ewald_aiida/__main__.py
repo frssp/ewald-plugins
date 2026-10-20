@@ -1,4 +1,4 @@
-"""``python -m ewald_aiida tree 1234`` / ``find --process PwRelaxWorkChain [--host nurion]``."""
+"""``python -m ewald_aiida tree 1234`` / ``find --process PwRelaxWorkChain [--host cluster]``."""
 from __future__ import annotations
 
 import argparse

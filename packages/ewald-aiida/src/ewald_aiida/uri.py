@@ -35,7 +35,7 @@ class AiidaURI:
 
 def parse(text: str) -> AiidaURI:
     """Parse ``aiida:1234``, ``aiida:prof/1234``, ``aiida:3f9c2e1a/relax/output_structure``,
-    ``aiida://sim-agent@nurion/prof/1234``.
+    ``aiida://alice@cluster/prof/1234``.
 
     The first path part is the node when it is a number or looks like a UUID (hex digits and
     dashes); otherwise it names the profile and the node follows.
