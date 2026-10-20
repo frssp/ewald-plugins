@@ -60,7 +60,7 @@ workflows (processes nobody called), newest first; type a PK to jump to one or w
 process labels, labels and descriptions. Expanding a workflow lists the processes it called,
 nested, with their structures, trajectories and bands; a restart workchain's `iteration_NN`
 calculations are one step with a run count. A double click opens a step or output, and on a
-workflow opens it as one notebook with a `load` cell per step and `pipe` on its main result.
+workflow opens it as one notebook whose one load cell names every step, with `pipe` on its main result.
 Edit › Plugin settings › AiiDA sets where the profile is: a host (empty: this machine), a
 profile (empty: the default) and the Python that runs `verdi` on the host. EWALD's AI tools
 `list_workflows` and `describe_workflow` read the same. The side bar is EWALD's workflow side
