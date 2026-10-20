@@ -37,6 +37,7 @@ A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z
    name = "CP2K formats"
    summary = "Reads CP2K -pos-*.xyz trajectories"
    kinds = ["reader"]                # modifier reader writer visual overlay colormap theme tool ui_theme
+                                     # ai_provider settings_page panel
    source = "pip:git+https://github.com/OWNER/ewald-cp2k@v0.2.0"
    version = "0.2.0"
    requires_ewald = ">=0.1"
