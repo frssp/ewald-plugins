@@ -7,6 +7,7 @@ machine over SSH, sent as the source of ``python -c`` (see :mod:`ewald_aiida.tra
     python -c "<this file>" bundle [--profile P] [--what V] NODE [LINK ...]   # npz on stdout
     python -c "<this file>" tree [--profile P] [--depth D] NODE                # text
     python -c "<this file>" find [--profile P] [--process L] [--limit N] [--ok] # JSON
+    python -c "<this file>" describe [--profile P] [--depth D] NODE [LINK ...] # JSON (workflow tree)
 
 Everything here only reads: no node is stored, changed or submitted.
 
@@ -430,25 +431,89 @@ def tree(node, profile=None, depth=4, links=()):
 
 def find(process_label=None, profile=None, limit=20, finished_ok=None):
     """Recent processes, newest first, as dicts (pk, uuid, process_label, state, exit_status,
-    ctime, label)."""
+    ctime, label, description)."""
+    return page(process_label, profile, limit, finished_ok)["rows"]
+
+
+def page(process_label=None, profile=None, limit=20, finished_ok=None, query=None, offset=0, roots=False):
+    """One page of :func:`find`: ``{"rows": [...], "next": offset or None}``. ``query`` matches
+    text in the process label, label or description (any case); ``roots`` keeps only the
+    processes nobody called (whole workflows); ``next`` is the ``offset`` of the next page."""
     load_profile(profile)
     from aiida import orm
 
     filters = {}
     if process_label:
         filters["attributes.process_label"] = {"like": process_label} if "%" in process_label else process_label
+    if query:
+        filters["or"] = [{"attributes.process_label": {"ilike": f"%{query}%"}},
+                         {"label": {"ilike": f"%{query}%"}}, {"description": {"ilike": f"%{query}%"}}]
+    filtered = finished_ok is not None or roots
+    batch = limit * 4 if filtered else limit
     qb = orm.QueryBuilder().append(orm.ProcessNode, filters=filters, tag="p")
-    qb.order_by({"p": {"ctime": "desc"}}).limit(limit * 4 if finished_ok is not None else limit)
-    out = []
+    qb.order_by({"p": {"ctime": "desc"}}).offset(offset).limit(batch)
+    out, read = [], 0
     for (n,) in qb.iterall():
-        if finished_ok is not None and bool(n.is_finished_ok) != finished_ok:
+        read += 1
+        if finished_ok is not None and bool(n.is_finished_ok) != finished_ok or roots and n.caller is not None:
             continue
         out.append({"pk": n.pk, "uuid": n.uuid, "process_label": n.process_label,
                     "state": _value(n.process_state), "exit_status": n.exit_status,
-                    "ctime": n.ctime.isoformat(), "label": n.label})
+                    "ctime": n.ctime.isoformat(), "label": n.label, "description": n.description})
         if len(out) >= limit:
             break
+    return {"rows": out, "next": offset + read if read == batch or len(out) >= limit else None}
+
+
+_RESTART_LABEL = "iteration_"
+_OPENABLE = {"StructureData": "structure", "TrajectoryData": "trajectory", "BandsData": "bands"}
+
+
+def _output(t):
+    node = t.node
+    kind = next((k for cls, k in _OPENABLE.items() if _of_type(node, cls)), None)
+    if kind == "bands" and is_phonon_bands(node) or is_phonopy(node):
+        kind = "phonons"
+    if kind is None:
+        return None
+    out = {"link": t.link_label, "kind": kind, "pk": node.pk}
+    if kind == "structure":
+        out["formula"] = node.get_formula()
+    elif kind == "trajectory":
+        out["steps"] = node.numsteps
     return out
+
+
+def describe(node, profile=None, depth=6, links=()):
+    """A process and everything it called, as JSON-ready dicts: ``pk``, ``uuid``,
+    ``process_label``, ``process_state``, ``exit_status``, ``label``, ``description``, ``ctime``,
+    ``call_label``, ``view`` (what ``load`` opens for it, or None), ``scalars``, ``outputs``
+    (structures, trajectories, bands, phonons: link label, kind, pk), ``work_dir`` and
+    ``computer`` of a CalcJob, and ``called``, in call order, ``depth`` levels down."""
+    top = load(node, links, profile)
+
+    def view_of(n):
+        try:
+            return find_view(n)[0]
+        except (LookupError, ValueError):
+            return None
+
+    def one(n, level):
+        d = info(n)
+        d.update(description=n.description, ctime=n.ctime.isoformat(), view=view_of(n))
+        if not is_process(n):
+            d["outputs"] = [o for o in [_output(type("T", (), {"node": n, "link_label": ""}))] if o]
+            return d
+        d.update(call_label=call_label(n), scalars=scalars(n),
+                 outputs=[o for o in (_output(t) for t in outgoing(n)) if o])
+        if hasattr(n, "get_remote_workdir"):
+            d["work_dir"] = n.get_remote_workdir() or ""
+            d["computer"] = n.computer.label if n.computer is not None else ""
+        if level < depth:
+            d["called"] = [one(c, level + 1) for c in sorted(n.called, key=lambda c: (c.ctime, c.pk))]
+        return d
+
+    return one(top, 0)
 
 
 # ----------------------------------------------------------------------- command line
@@ -476,14 +541,27 @@ def main(argv=None):
     f.add_argument("--process")
     f.add_argument("--limit", type=int, default=20)
     f.add_argument("--ok", action="store_true")
+    f.add_argument("--query")
+    f.add_argument("--offset", type=int, default=0)
+    f.add_argument("--roots", action="store_true")
+    f.add_argument("--page", action="store_true", help="print {rows, next} (with --query/--offset/--roots)")
+    d = sub.add_parser("describe")
+    d.add_argument("--profile")
+    d.add_argument("--depth", type=int, default=6)
+    d.add_argument("node")
+    d.add_argument("links", nargs="*")
     args = p.parse_args(argv)
     out = sys.stdout.buffer
     if args.command == "bundle":
         out.write(to_npz(*bundle(_node_arg(args.node), args.links, args.what, args.profile)))
     elif args.command == "tree":
         out.write(tree(_node_arg(args.node), args.profile, args.depth, args.links).encode())
+    elif args.command == "describe":
+        out.write(json.dumps(describe(_node_arg(args.node), args.profile, args.depth, args.links)).encode())
     else:
-        out.write(json.dumps(find(args.process, args.profile, args.limit, True if args.ok else None)).encode())
+        found = page(args.process, args.profile, args.limit, True if args.ok else None,
+                     args.query, args.offset, args.roots)
+        out.write(json.dumps(found if args.page else found["rows"]).encode())
     out.flush()
 
 

@@ -120,3 +120,20 @@ def find(host: AiidaURI | None, process_label=None, profile=None, limit=20, fini
     args = ["find", "--limit", str(limit)] + (["--profile", profile] if profile else []) + \
            (["--process", process_label] if process_label else []) + (["--ok"] if finished_ok else [])
     return json.loads(run(host, args, python))
+
+
+def page(host: AiidaURI | None, profile=None, limit=50, query=None, offset=0, python=None) -> dict:
+    """One page of whole workflows (processes nobody called), newest first: ``{"rows", "next"}``."""
+    if host is None or host.host is None:
+        return export.page(None, profile, limit, None, query, offset, roots=True)
+    args = ["find", "--page", "--roots", "--limit", str(limit), "--offset", str(offset)] + \
+           (["--profile", profile] if profile else []) + (["--query", query] if query else [])
+    return json.loads(run(host, args, python))
+
+
+def describe(uri: AiidaURI, profile=None, depth: int = 6, python=None) -> dict:
+    """:func:`ewald_aiida.export.describe` of ``uri``, local or on its host."""
+    if uri.host is None:
+        return export.describe(uri.node, profile or uri.profile, depth, uri.links)
+    args = ["describe", "--depth", str(depth)] + (["--profile", profile or uri.profile] if profile or uri.profile else [])
+    return json.loads(run(uri, args + [str(uri.node), *uri.links], python))

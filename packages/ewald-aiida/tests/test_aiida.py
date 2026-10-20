@@ -245,3 +245,59 @@ def test_exporter_runs_without_ewald():
     mods |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.level == 0}
     assert not any(isinstance(n, ast.ImportFrom) and n.level for n in ast.walk(tree))
     assert mods <= {"__future__", "aiida", "argparse", "io", "json", "numpy", "os", "sys", "tempfile"}
+
+
+# ----------------------------------------------------------------------- workflow source
+def _names(step):
+    return [s.name for s in step.steps]
+
+
+def test_workflow_source_lists_whole_workflows_and_describes_them(graph):
+    from ewald import workflow
+    from ewald_aiida.source import AiidaWorkflows
+
+    src = AiidaWorkflows({})
+    assert src.account() == "default profile on this machine"
+    page = src.list()
+    pks = [w.id for w in page.workflows]
+    assert str(graph["relax"].pk) in pks and str(graph["calc1"].pk) not in pks   # called ones are not listed
+    assert [w.kind for w in src.list(query="phonopywork").workflows] == ["PhonopyWorkChain"]
+    relax = src.describe(str(graph["relax"].pk))
+    assert relax.runs == 2 and relax.steps == [] and relax.formula == "Si2" and relax.path == f"aiida:{graph['relax'].pk}"
+    assert [o.name for o in relax.outputs] == ["output_structure"] and relax.scalars["energy"] == -11.5
+    ph = src.describe(f"aiida:{graph['phonon_wf'].pk}")
+    assert _names(ph) == ["generate_phonopy_data", "get_force_constants", "PhonopyCalculation"]
+    assert ph.steps[2].outputs[0].note == "phonons"
+    assert ph.steps[0].path.endswith("/generate_phonopy_data")
+    nb = workflow.notebook_text(ph)
+    assert "generate_phonopy_data = load(" in nb and nb.rstrip().endswith(f"pipe = load('aiida:{graph['phonon_wf'].pk}')")
+    one = src.list()
+    assert one.next is None
+
+
+def test_workflow_source_pages_and_remote(graph, fake_host):
+    from ewald_aiida import source
+
+    src = source.AiidaWorkflows({"host": "alice@cluster", "profile": ""})
+    assert src.account() == "default profile on alice@cluster"
+    monkey = source.PAGE
+    try:
+        source.PAGE = 1
+        first = src.list()
+        assert len(first.workflows) == 1 and first.next is not None
+        assert first.workflows[0].path.startswith("aiida://alice@cluster/")
+        second = src.list(cursor=first.next)
+        assert second.workflows[0].id != first.workflows[0].id
+    finally:
+        source.PAGE = monkey
+    wf = src.describe(str(graph["relax"].pk))
+    assert wf.path == f"aiida://alice@cluster/{graph['relax'].pk}" and wf.runs == 2
+    assert any("describe" in c for c in fake_host.commands)
+
+
+def test_workflow_source_is_registered():
+    from ewald import plugins
+
+    assert plugins.workflow_sources()["aiida"].schemes == ("aiida",)
+    assert plugins.panels()["aiida"].title == "AiiDA"
+    assert [f.name for f in plugins.settings_pages()["aiida"].fields] == ["host", "profile", "python"]
