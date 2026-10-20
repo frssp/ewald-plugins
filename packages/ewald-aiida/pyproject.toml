@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewald-aiida"
-version = "0.1.0"
+version = "0.1.1"
 description = "Open AiiDA results (structures, trajectories, bands, phonopy) in EWALD by PK: load(\"aiida:1234\")"
 readme = "README.md"
 requires-python = ">=3.10"

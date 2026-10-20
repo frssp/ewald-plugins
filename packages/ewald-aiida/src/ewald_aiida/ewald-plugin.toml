@@ -1,6 +1,7 @@
 id = "aiida"
 display-name = "AiiDA results"
-version = "0.1.0"
+version = "0.1.1"
 publisher = "frssp"
 description = "Open AiiDA nodes by PK or UUID (load(\"aiida:1234\")): structures, trajectories, bands, workflows, aiida-phonopy results; an AiiDA side bar of workflows. Read-only."
 requires-ewald = ">=0.1"
+plugin-api = 1

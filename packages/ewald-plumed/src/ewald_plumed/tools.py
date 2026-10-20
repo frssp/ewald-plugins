@@ -7,6 +7,7 @@ import os
 import numpy as np
 
 from ewald.llm.tools import ToolResult, downsample
+from ewald.pipeline import Pipeline
 from ewald.plugins import claude_tool
 
 from . import plumed as pl
@@ -17,29 +18,32 @@ from .modifiers import Plumed
     "compute_plumed_cvs",
     "Collective variables computed by PLUMED (needs the PLUMED library) over the trajectory from a plumed.dat "
     "(text or path): e.g. 'd: DISTANCE ATOMS=1,2' (atoms numbered from 1, by Particle Identifier when present), "
-    "TORSION, COORDINATION, RMSD, METAD with temperature. Appends a Plumed modifier (unless keep=false), so "
-    "every frame gets attributes Plumed.<name> (PLUMED units: nm, rad, kJ/mol) and per-atom labels become "
-    "properties 'Plumed <label>'. Returns statistics per value and a downsampled table over frames.",
+    "TORSION, COORDINATION, RMSD, METAD with temperature. Adds a Plumed step to the notebook like add_modifier "
+    "(unless keep=false), so every frame gets attributes Plumed.<name> (PLUMED units: nm, rad, kJ/mol) and "
+    "per-atom labels become properties 'Plumed <label>'. Returns statistics per value and a downsampled table "
+    "over frames.",
     {"type": "object", "required": ["input"], "properties": {
         "input": {"type": "string", "description": "PLUMED input text, or the path of a plumed.dat"},
         "start": {"type": "integer"}, "stop": {"type": "integer"}, "step": {"type": "integer"},
         "time_per_frame": {"type": "number", "description": "ps between stored frames (default 1)"},
         "temperature": {"type": "number", "description": "K, for METAD and other biases"},
-        "keep": {"type": "boolean", "description": "keep the modifier in the pipeline (default true)"}}})
+        "keep": {"type": "boolean", "description": "keep the step in the notebook (default true)"}}})
 def compute_plumed_cvs(toolset, input, start=0, stop=None, step=1, time_per_frame=1.0, temperature=0.0, keep=True):
     pipe = toolset._need_pipeline()
     problems = pl.untrusted_input_problems(input)
     if problems:
         raise PermissionError("not run: " + "; ".join(problems))
-    mod = Plumed(input, start=start, stop=stop, step=step, time_per_frame=time_per_frame, temperature=temperature)
-    pipe.modifiers.append(mod)
-    try:
-        data = pipe.compute(toolset.frame)
-    except Exception:
-        pipe.modifiers.remove(mod)
-        raise
-    if not keep:
-        pipe.modifiers.remove(mod)
+    params = {"input": input, "start": start, "stop": stop, "step": step, "time_per_frame": time_per_frame,
+              "temperature": temperature}
+    params = {k: v for k, v in params.items() if v is not None}
+    mod = Plumed(**params)   # bad arguments fail here
+    if keep:   # the AI changes the pipeline only through the notebook: a step cell, written and run
+        res = toolset.call("add_modifier", {"name": "Plumed", "params": params})
+        if res.is_error:
+            raise RuntimeError(res.content)
+        data = toolset.pipeline.compute(toolset.frame)
+    else:      # a look only: computed on a copy, the pipeline stays as it is
+        data = Pipeline(pipe.source, list(pipe.modifiers) + [mod]).compute(toolset.frame)
     table = {k: np.asarray(v, float) for k, v in data.tables["plumed"].items()}
     stats = {k: {"min": float(np.nanmin(v)), "max": float(np.nanmax(v)), "mean": float(np.nanmean(v)),
                  "first": float(v[0]), "last": float(v[-1])} for k, v in table.items() if k != "Frame"}
