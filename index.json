@@ -26,7 +26,8 @@
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins"
+   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "sha256": "90be9aa6bf376254a4ac0710c86d45a65ae2c743b37a7d6cdca3c8f9d77b322e"
   },
   {
    "id": "figure_extras",
@@ -41,7 +42,8 @@
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins"
+   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "sha256": "c9aabff583fb1e2ec3ead4b5d85219ac9eff52822e1c1b4286e8e07d898c0012"
   },
   {
    "id": "local_composition",
@@ -54,7 +56,8 @@
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins"
+   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "sha256": "ce29c535cbad7f4de693bbfa58cb8f6906ef1f7349a83e942b8b48c8e4655243"
   },
   {
    "id": "npz_trajectory",
@@ -67,7 +70,8 @@
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins"
+   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "sha256": "88f24f8e348161ed1e53d91042bd93a536a0bce62578781db837df04e4922c7b"
   },
   {
    "id": "phonopy",
