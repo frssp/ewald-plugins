@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewald-phonopy"
-version = "0.2.1"
+version = "0.2.2"
 description = "Phonon modes in EWALD: phonopy band/mesh/qpoints.yaml, VASP IBRION=5-8 OUTCARs, phonopy force constants, and the PhononMode animation"
 readme = "README.md"
 requires-python = ">=3.10"
