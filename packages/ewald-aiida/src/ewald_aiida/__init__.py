@@ -25,4 +25,4 @@ from .export import VIEWS
 from .uri import AiidaURI, parse
 
 __all__ = ["AiidaURI", "VIEWS", "find", "parse", "tree"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
