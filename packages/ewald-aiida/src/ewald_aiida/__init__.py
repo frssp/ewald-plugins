@@ -7,7 +7,7 @@ pipe = load("aiida:myprofile/1234")             # another profile
 pipe = load("aiida:3f9c2e1a")                   # UUID or its beginning
 pipe = load("aiida:1234/relax/output_structure")  # follow output links
 pipe = load("aiida:1234", what="structures")    # pick a view of a workflow
-pipe = load("aiida://sim-agent@nurion/1234")    # the default profile of sim-agent on nurion
+pipe = load("aiida://alice@cluster/1234")    # the default profile of alice on cluster
 ```
 
 A node maps to frames as follows: ``StructureData`` is one frame, ``TrajectoryData`` one frame per

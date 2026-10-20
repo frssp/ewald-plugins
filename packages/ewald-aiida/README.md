@@ -16,7 +16,7 @@ pipe = load("aiida:myprofile/1234")                # another profile
 pipe = load("aiida:3f9c2e1a")                      # a UUID or its beginning: the same node on any machine
 pipe = load("aiida:1234/iteration_01/output_structure")   # follow links (called steps, outputs)
 pipe = load("aiida:1234", what="structures")       # trajectory | phonons | bands | structures | input
-pipe = load("aiida://sim-agent@nurion/1234")       # AiiDA on another machine, over SSH
+pipe = load("aiida://alice@cluster/1234")       # AiiDA on another machine, over SSH
 ```
 
 The same strings work on the command line (`ewald gui aiida:1234`, `ewald render aiida:1234`),
@@ -40,7 +40,7 @@ Every frame has `attributes["AiiDA"]` (`pk`, `uuid`, `node_type`, `label`, `proc
 ## AiiDA on another machine
 
 `aiida://[user@]host[:port]/[profile/]NODE[/link...]` reads a profile on a remote host, for
-example the profile of the `sim-agent` account on a cluster. `host` can be a `~/.ssh/config`
+example the profile of the `alice` account on a cluster. `host` can be a `~/.ssh/config`
 alias, and keys, ssh-agent, jump hosts and known_hosts work as for EWALD's other remote files.
 Nothing is installed on the host: EWALD sends the read-only exporter
 ([export.py](src/ewald_aiida/export.py), standard library, numpy, aiida-core) as `python -c`,
@@ -58,8 +58,8 @@ PostgreSQL role) from your own account.
 ```bash
 python -m ewald_aiida tree 1234              # called processes and outputs, with PKs
 python -m ewald_aiida find --process 'Pw%'   # recent processes; --ok, --json, --profile
-python -m ewald_aiida find --host sim-agent@nurion --process 'Phonopy%'
-python -m ewald_aiida tree aiida://sim-agent@nurion/1234
+python -m ewald_aiida find --host alice@cluster --process 'Phonopy%'
+python -m ewald_aiida tree aiida://alice@cluster/1234
 ```
 
 ```text

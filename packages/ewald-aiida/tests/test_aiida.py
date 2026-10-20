@@ -19,8 +19,8 @@ def _count():
     ("aiida:3F9C2E1A", AiidaURI("3f9c2e1a")),
     ("aiida:1234/relax/output_structure", AiidaURI(1234, ("relax", "output_structure"))),
     ("aiida:my-prof/8/output_band", AiidaURI(8, ("output_band",), "my-prof")),
-    ("aiida://nurion/1234", AiidaURI(1234, host="nurion")),
-    ("aiida://sim-agent@nurion:2222/prof/3f9c/relax", AiidaURI("3f9c", ("relax",), "prof", "nurion", "sim-agent", 2222)),
+    ("aiida://cluster/1234", AiidaURI(1234, host="cluster")),
+    ("aiida://alice@cluster:2222/prof/3f9c/relax", AiidaURI("3f9c", ("relax",), "prof", "cluster", "alice", 2222)),
 ])
 def test_parse(text, uri):
     assert parse(text) == uri
@@ -192,40 +192,40 @@ def fake_host(monkeypatch, tmp_path):
 def test_remote_workflow_over_ssh(graph, fake_host):
     relax = graph["relax"]
     local = load(f"aiida:{relax.pk}")
-    pipe = load(f"aiida://sim-agent@nurion/{relax.pk}")
+    pipe = load(f"aiida://alice@cluster/{relax.pk}")
     assert pipe.num_frames == local.num_frames == 5
     a, b = pipe.compute(4), local.compute(4)
     np.testing.assert_allclose(a.positions, b.positions)
     np.testing.assert_allclose(a.particles["Force"], b.particles["Force"])
-    assert a.attributes["AiiDA"]["host"] == "nurion" and a.attributes["AiiDA"]["calc_pk"] == graph["calc2"].pk
+    assert a.attributes["AiiDA"]["host"] == "cluster" and a.attributes["AiiDA"]["calc_pk"] == graph["calc2"].pk
     assert a.attributes["fermi_energy"] == 6.1
     assert fake_host.commands[0].startswith("bash -lc")          # found verdi's python once
     assert "bundle" in fake_host.commands[1] and "/opt/aiida/bin/python" in fake_host.commands[1]
-    bands = load(f"aiida://nurion/{graph['bands_calc'].pk}").compute(0)
+    bands = load(f"aiida://cluster/{graph['bands_calc'].pk}").compute(0)
     assert bands.attributes["Electronic Structure"].eigenvalues.shape == (1, 13, 8)
 
 
 def test_remote_phonons_structures_and_browsing(graph, fake_host):
     pytest.importorskip("ewald_phonopy")
-    modes = load(f"aiida://nurion/{graph['phonon_wf'].pk}", frames=4).compute(0).attributes["Phonon Modes"]
+    modes = load(f"aiida://cluster/{graph['phonon_wf'].pk}", frames=4).compute(0).attributes["Phonon Modes"]
     assert [t[1] for t in modes.ticks] == ["GAMMA", "X", "W|K", "GAMMA"]
-    s = load(f"aiida://nurion/{graph['relax'].pk}/iteration_01/output_structure").compute(0)
+    s = load(f"aiida://cluster/{graph['relax'].pk}/iteration_01/output_structure").compute(0)
     np.testing.assert_allclose(s.positions[1, 0], 5.43 / 4 + 0.01)
-    assert "iteration_02: PwCalculation" in ewald_aiida.tree(f"aiida://nurion/{graph['relax'].pk}")
-    rows = ewald_aiida.find("PhonopyWorkChain", host="nurion")
-    assert rows[0]["uri"] == f"aiida://nurion/{graph['phonon_wf'].pk}"
+    assert "iteration_02: PwCalculation" in ewald_aiida.tree(f"aiida://cluster/{graph['relax'].pk}")
+    rows = ewald_aiida.find("PhonopyWorkChain", host="cluster")
+    assert rows[0]["uri"] == f"aiida://cluster/{graph['phonon_wf'].pk}"
 
 
 def test_remote_errors_and_cache(graph, fake_host):
-    with pytest.raises(LookupError, match="on nurion: LookupError: node 999999"):
-        load("aiida://nurion/999999")
+    with pytest.raises(LookupError, match="on cluster: LookupError: node 999999"):
+        load("aiida://cluster/999999")
     uuid = graph["final"].uuid
-    load(f"aiida://nurion/{uuid}")
+    load(f"aiida://cluster/{uuid}")
     n = len(fake_host.commands)
-    assert load(f"aiida://nurion/{uuid}").compute(0).count == 2   # a full UUID is cached
+    assert load(f"aiida://cluster/{uuid}").compute(0).count == 2   # a full UUID is cached
     assert len(fake_host.commands) == n
-    load(f"aiida://nurion/{graph['final'].pk}")
-    load(f"aiida://nurion/{graph['final'].pk}")                   # a PK is asked again
+    load(f"aiida://cluster/{graph['final'].pk}")
+    load(f"aiida://cluster/{graph['final'].pk}")                   # a PK is asked again
     assert len(fake_host.commands) == n + 2
 
 
