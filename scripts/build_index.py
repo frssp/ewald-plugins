@@ -23,7 +23,7 @@ except ModuleNotFoundError:  # Python 3.10
 
 ROOT = Path(__file__).resolve().parents[1]
 KINDS = ("modifier", "reader", "writer", "visual", "overlay", "colormap", "theme", "tool", "ui_theme",
-         "ai_provider", "settings_page", "panel")
+         "ai_provider", "settings_page", "panel", "menu_item", "workflow_source")
 REQUIRED = ("id", "name", "summary", "kinds", "source", "version")
 OPTIONAL = ("requires_ewald", "author", "homepage", "description", "tests", "sha256")
 FORMAT = 1
