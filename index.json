@@ -22,11 +22,11 @@
    "kinds": [
     "visual"
    ],
-   "source": "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/cell_axes.py",
+   "source": "https://raw.githubusercontent.com/frssp/ewald-plugins/46edbe1a12837581b92beece87bdd7c08bc4480a/examples/cell_axes.py",
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/examples",
    "sha256": "90be9aa6bf376254a4ac0710c86d45a65ae2c743b37a7d6cdca3c8f9d77b322e"
   },
   {
@@ -38,11 +38,11 @@
     "theme",
     "overlay"
    ],
-   "source": "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/figure_extras.py",
+   "source": "https://raw.githubusercontent.com/frssp/ewald-plugins/46edbe1a12837581b92beece87bdd7c08bc4480a/examples/figure_extras.py",
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/examples",
    "sha256": "c9aabff583fb1e2ec3ead4b5d85219ac9eff52822e1c1b4286e8e07d898c0012"
   },
   {
@@ -52,11 +52,11 @@
    "kinds": [
     "modifier"
    ],
-   "source": "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/local_composition.py",
+   "source": "https://raw.githubusercontent.com/frssp/ewald-plugins/46edbe1a12837581b92beece87bdd7c08bc4480a/examples/local_composition.py",
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/examples",
    "sha256": "ce29c535cbad7f4de693bbfa58cb8f6906ef1f7349a83e942b8b48c8e4655243"
   },
   {
@@ -66,11 +66,11 @@
    "kinds": [
     "reader"
    ],
-   "source": "https://raw.githubusercontent.com/frssp/ewald/3cdb0f0728e08c8dacd1a979e15f1408b6a63144/examples/plugins/npz_trajectory.py",
+   "source": "https://raw.githubusercontent.com/frssp/ewald-plugins/46edbe1a12837581b92beece87bdd7c08bc4480a/examples/npz_trajectory.py",
    "version": "0.1.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald/tree/main/examples/plugins",
+   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/examples",
    "sha256": "88f24f8e348161ed1e53d91042bd93a536a0bce62578781db837df04e4922c7b"
   },
   {
