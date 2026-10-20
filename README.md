@@ -90,3 +90,8 @@ single files, `sha256`. EWALD
 uses `id` to match an entry with an installed plugin, and `version` to offer updates. Entries
 are trusted only as far as this repository's review goes: installing one runs its code with
 your user's rights, as with VS Code extensions.
+
+## License
+
+MIT ([LICENSE](LICENSE)), like EWALD itself. PLUMED, phonopy and AiiDA are separate packages with
+their own licenses; the plugins only call them.
