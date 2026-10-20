@@ -20,6 +20,15 @@ aiida = "ewald_aiida"
 [project.entry-points."ewald.readers"]
 aiida = "ewald_aiida.reader:AiidaReader"
 
+[project.entry-points."ewald.workflows"]
+aiida = "ewald_aiida.source:AiidaWorkflows"
+
+[project.entry-points."ewald.panels"]
+aiida = "ewald_aiida.panel:aiida"
+
+[project.entry-points."ewald.settings_pages"]
+aiida = "ewald_aiida.source:AiidaSettings"
+
 [project.scripts]
 ewald-aiida = "ewald_aiida.__main__:main"
 

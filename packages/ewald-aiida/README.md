@@ -53,6 +53,21 @@ To read another account's profile you need that account's SSH login (simplest), 
 access to its `~/.aiida` configuration, its file repository and its database (a read-only
 PostgreSQL role) from your own account.
 
+## In the GUI: the AiiDA side bar
+
+The **AiiDA** button on EWALD's activity bar opens a side bar with the profile's whole
+workflows (processes nobody called), newest first; type a PK to jump to one or words to search
+process labels, labels and descriptions. Expanding a workflow lists the processes it called,
+nested, with their structures, trajectories and bands; a restart workchain's `iteration_NN`
+calculations are one step with a run count. A double click opens a step or output, and on a
+workflow opens it as one notebook with a `load` cell per step and `pipe` on its main result.
+Edit › Plugin settings › AiiDA sets where the profile is: a host (empty: this machine), a
+profile (empty: the default) and the Python that runs `verdi` on the host. EWALD's AI tools
+`list_workflows` and `describe_workflow` read the same. The side bar is EWALD's workflow side
+bar (`ewald.workflow`); this plugin is its source (`ewald_aiida.source.AiidaWorkflows`, which
+runs `export.py describe` / `find --page` where the profile is). It needs an EWALD with
+workflow sources.
+
 ## Browsing
 
 ```bash
