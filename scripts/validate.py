@@ -17,6 +17,7 @@ clone with ``git show`` instead.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -76,7 +77,10 @@ def validate(entry: dict, local: dict) -> list[str]:
             if r.returncode:
                 return [f"pip install failed: {r.stderr.strip()[-600:]}"]
         else:
-            (folder / source.rsplit("/", 1)[-1]).write_bytes(fetch(source, local))
+            data = fetch(source, local)
+            if entry.get("sha256") and hashlib.sha256(data).hexdigest() != entry["sha256"]:
+                return [f"sha256 of the fetched file is {hashlib.sha256(data).hexdigest()}, not {entry['sha256']}"]
+            (folder / source.rsplit("/", 1)[-1]).write_bytes(data)
         r = subprocess.run([sys.executable, "-I", "-c", _PROBE], capture_output=True, text=True, env=env, cwd=tmp)
         if r.returncode:
             return [f"loading ewald plugins failed: {r.stderr.strip()[-600:]}"]

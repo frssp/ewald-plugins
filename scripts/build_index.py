@@ -4,7 +4,9 @@
     python scripts/build_index.py --check    # check only; exit 1 if index.json is stale
 
 An entry is one TOML file named after the plugin id. Required keys: id, name, summary, kinds,
-source, version. Optional: requires_ewald, author, homepage, description, tests.
+source, version. Optional: requires_ewald, author, homepage, description, tests, sha256.
+A raw .py source needs sha256 (hex SHA-256 of the file); EWALD refuses a download that does
+not match it, and scripts/validate.py checks it against the fetched file.
 """
 from __future__ import annotations
 
@@ -22,7 +24,7 @@ except ModuleNotFoundError:  # Python 3.10
 ROOT = Path(__file__).resolve().parents[1]
 KINDS = ("modifier", "reader", "writer", "visual", "overlay", "colormap", "theme", "tool", "ui_theme")
 REQUIRED = ("id", "name", "summary", "kinds", "source", "version")
-OPTIONAL = ("requires_ewald", "author", "homepage", "description", "tests")
+OPTIONAL = ("requires_ewald", "author", "homepage", "description", "tests", "sha256")
 FORMAT = 1
 # a source is pinned: a git URL at a tag or commit, a PyPI release, or a raw file at a tag or commit
 _GIT = re.compile(r"pip:git\+https://github\.com/[\w.-]+/[\w.-]+(?:\.git)?@([\w.\-/]+)(?:#.*)?$")
@@ -60,6 +62,9 @@ def check_entry(path: Path) -> tuple[dict, list[str]]:
                             f"pip:NAME==VERSION or a raw.githubusercontent.com .py file at a tag or commit")
         elif m and m.group(1) in _BRANCHES:
             problems.append(f"{path.name}: source points at the branch {m.group(1)!r}; pin a tag or commit")
+        if _RAW.match(source) and not re.fullmatch(r"[0-9a-f]{64}", str(entry.get("sha256", ""))):
+            problems.append(f"{path.name}: a .py source needs sha256 = \"<64 lower-case hex digits>\" "
+                            f"(python -c \"import hashlib,sys; print(hashlib.sha256(open(sys.argv[1],'rb').read()).hexdigest())\" FILE)")
     req = entry.get("requires_ewald", "")
     if req and not all(_REQUIREMENT.fullmatch(c) for c in str(req).split(",")):
         problems.append(f"{path.name}: requires_ewald {req!r} is not like '>=0.1, <1'")

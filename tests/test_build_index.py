@@ -47,3 +47,11 @@ def test_bad_fields(tmp_path):
     assert any("requires_ewald" in p for p in _check(tmp_path, GOOD.replace(">=0.1, <1", "latest")))
     assert any("unknown key" in p for p in _check(tmp_path, GOOD + 'stars = 5\n'))
     assert any("missing 'summary'" in p for p in _check(tmp_path, GOOD.replace('summary = "A demo"\n', "")))
+
+
+def test_raw_file_source_needs_sha256(tmp_path):
+    raw = GOOD.replace('source = "pip:git+https://github.com/someone/ewald-demo@v0.1.0"',
+                       'source = "https://raw.githubusercontent.com/someone/repo/0123abc/demo.py"')
+    assert any("sha256" in p for p in _check(tmp_path, raw))
+    assert any("sha256" in p for p in _check(tmp_path, raw + 'sha256 = "abc"\n'))
+    assert _check(tmp_path, raw + f'sha256 = "{"0" * 64}"\n') == []

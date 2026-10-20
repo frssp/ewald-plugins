@@ -50,7 +50,9 @@ A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z
    - `pip:git+https://github.com/OWNER/REPO@TAG` (or a commit) for a package,
    - `pip:NAME==VERSION` for a PyPI release,
    - `https://raw.githubusercontent.com/OWNER/REPO/TAG/path/plugin.py` for a single file. EWALD
-     copies it into the plugin folder.
+     copies it into the plugin folder. Such an entry also needs `sha256 = "<hex>"` of the file
+     (`sha256sum plugin.py`); EWALD refuses a download that does not match it, and
+     `scripts/validate.py` checks it.
 
    Branch names such as `main` are rejected.
 3. Run `python scripts/build_index.py` and `python scripts/validate.py <id>` in a throwaway
@@ -82,7 +84,8 @@ with read access to frssp/ewald.
   "requires_ewald": ">=0.1", "author": "...", "homepage": "...", "description": "...", "tests": "..."}]}
 ```
 
-These are the `Entry` fields of `ewald.plugin_catalog`, plus `id` and `requires_ewald`. EWALD
+These are the `Entry` fields of `ewald.plugin_catalog`, plus `id`, `requires_ewald` and, for
+single files, `sha256`. EWALD
 uses `id` to match an entry with an installed plugin, and `version` to offer updates. Entries
 are trusted only as far as this repository's review goes: installing one runs its code with
 your user's rights, as with VS Code extensions.
