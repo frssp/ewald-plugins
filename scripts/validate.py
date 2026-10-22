@@ -32,7 +32,9 @@ from build_index import ROOT, check_entry  # noqa: E402
 
 _RAW = re.compile(r"https://raw\.githubusercontent\.com/([\w.-]+/[\w.-]+)/([\w.\-]+)/(.+)$")
 _PLURAL = {"modifier": "modifiers", "reader": "readers", "writer": "writers", "visual": "visuals",
-           "overlay": "overlays", "colormap": "colormaps", "theme": "themes", "tool": "tools", "ui_theme": "ui_themes"}
+           "overlay": "overlays", "colormap": "colormaps", "theme": "themes", "tool": "tools", "ui_theme": "ui_themes",
+           "ai_provider": "ai_providers", "settings_page": "settings_pages", "panel": "panels",
+           "workflow_source": "workflows"}
 
 
 def fetch(url: str, local: dict) -> bytes:
@@ -98,7 +100,7 @@ def validate(entry: dict, local: dict) -> list[str]:
         if plugin["state"] != "loaded":
             problems.append(f"plugin is {plugin['state']}: {'; '.join(plugin['errors'])}")
         for kind in entry["kinds"]:
-            if not plugin["contributions"].get(_PLURAL[kind]):
+            if kind in _PLURAL and not plugin["contributions"].get(_PLURAL[kind]):
                 problems.append(f"lists kind {kind!r} but registers no {_PLURAL[kind]}")
         if entry.get("tests"):
             test = Path(tmp, "test_entry.py")
