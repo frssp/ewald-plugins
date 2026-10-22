@@ -102,6 +102,23 @@
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-plumed",
    "description": "Plumed runs a plumed.dat over the trajectory through PLUMED's MD-engine interface (values match plumed driver); LoadColvar aligns an existing COLVAR with the frames; FreeEnergySurface sums a HILLS file as plumed sum_hills does. Adds the Claude tools compute_plumed_cvs and read_plumed_output. Plumed needs the PLUMED library and its Python binding (conda install -c conda-forge plumed py-plumed); the rest works without. Was part of EWALD before 2026-10-19."
+  },
+  {
+   "id": "simagent",
+   "name": "sim-agent results",
+   "summary": "Open your finished sim-agent calculations by AiiDA PK: load(\"simagent:1234\") for trajectories, structures and VASP files",
+   "kinds": [
+    "reader",
+    "settings_page",
+    "panel",
+    "workflow_source"
+   ],
+   "source": "pip:git+https://github.com/frssp/ewald-simagent@0d3327c7161e4f3b3c6f74219eb9f217683c1c81",
+   "version": "0.1.0",
+   "requires_ewald": ">=0.1",
+   "author": "frssp",
+   "homepage": "https://github.com/frssp/ewald-simagent",
+   "description": "Reads a sim-agent server's results API v1 with an access key made in its web UI (the key is kept in the OS keychain). A workflow opens as steps with their trajectories, structures and retrieved files; CHGCAR/LOCPOT and other files left on the cluster are read over SSH. Adds a sim-agent side bar and the workflow AI tools. Read-only: submitting stays in sim-agent. Needs a sim-agent with the results API and an EWALD with workflow sources (after 2026-10-20)."
   }
  ]
 }
