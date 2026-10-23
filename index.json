@@ -96,8 +96,8 @@
     "modifier",
     "tool"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@d37863378d6f9209d0bcc4466eb42e1ded1583b5#subdirectory=packages/ewald-plumed",
-   "version": "0.1.1",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@6b3c056791825ef5ea6a5a1e4fec7adb0d4bd66a#subdirectory=packages/ewald-plumed",
+   "version": "0.1.2",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-plumed",
