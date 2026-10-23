@@ -264,3 +264,15 @@ def test_claude_tools_read_plumed_output(tmp_path):
     f.write_text("#! FIELDS time d\n0 1\n1 3\n")
     r = ts.call("read_plumed_output", {"path": str(f)})
     assert r.content["kind"] == "colvar" and r.content["columns"]["d"]["mean"] == 2.0
+
+
+def test_read_plumed_output_stays_in_the_folders_the_ai_may_read(tmp_path):
+    access = pytest.importorskip("ewald.llm.access")
+    from ewald.llm.tools import Toolset
+
+    ts = Toolset(workdir=str(tmp_path))
+    ts.read_access = access.ReadAccess([str(tmp_path)])
+    (tmp_path / "COLVAR").write_text("#! FIELDS time d\n0 1\n1 3\n")
+    assert not ts.call("read_plumed_output", {"path": str(tmp_path / "COLVAR")}).is_error
+    r = ts.call("read_plumed_output", {"path": str(DATA / "HILLS_2d")})
+    assert r.is_error and "outside the folders the AI may read" in r.content

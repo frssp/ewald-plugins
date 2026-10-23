@@ -64,6 +64,9 @@ def compute_plumed_cvs(toolset, input, start=0, stop=None, step=1, time_per_fram
         "path": {"type": "string"},
         "bins": {"type": "integer", "description": "FES grid bins per CV (default 100)"}}})
 def read_plumed_output(toolset, path, bins=100):
+    check = getattr(toolset, "check_read", None)   # the folders the AI may read (EWALD after 2026-10-23)
+    if check is not None:
+        check(path)
     path = os.path.expanduser(path)
     table = pl.read_colvar(path)
     if not any(k.startswith("sigma_") for k in table):
