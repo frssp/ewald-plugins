@@ -1,14 +1,8 @@
-"""Phonon mode files as a looping trajectory.
+"""phonopy's input with forces or force constants as a looping phonon trajectory (``phonopy-fc``).
 
-- ``phonopy``: band.yaml / mesh.yaml / qpoints.yaml with eigenvectors;
-- ``vasp-phonon``: VASP OUTCARs of IBRION=5-8 runs (Gamma modes);
-- ``phonopy-fc``: phonopy's input (``phonopy.yaml``, ``phonopy_params.yaml``, ``phonopy_disp.yaml``)
-  with forces or force constants; phonopy computes the band structure with eigenvectors.
-
-Every frame is the primitive cell with the modes in ``data.attributes["Phonon Modes"]`` (a
-:class:`ewald_phonopy.phonon.PhononModes`) and the frequencies in the table "Phonon Bands"; the
-:class:`ewald_phonopy.PhononMode` modifier displaces the atoms along one mode, one period
-over the ``frames`` frames.
+phonopy computes the band structure with eigenvectors along the seekpath path; every frame is
+the primitive cell with the modes in ``data.attributes["Phonon Modes"]``, as EWALD's own
+band.yaml and OUTCAR readers give (:mod:`ewald.io.phonon`), so ``PhononMode`` animates one.
 """
 from __future__ import annotations
 
@@ -17,54 +11,8 @@ import os
 import numpy as np
 
 from ewald.data import Cell
-from ewald.io.base import FrameReader
-
-from .phonon import PhononModes, is_outcar_phonon, is_phonopy_yaml, read_modes
-
-
-class PhononReader(FrameReader):
-    """Phonon modes of ``path``; ``frames`` frames make one vibration period."""
-
-    def __init__(self, path, frames: int = 24, structure=None):
-        self.path = str(path)
-        self.frames = int(frames)
-        if self.frames < 1:
-            raise ValueError("frames must be at least 1")
-        self.modes: PhononModes = read_modes(self.path, structure=structure)
-        self._table = self.modes.table()  # shared by every frame, so the Plots tab draws it once
-
-    def __len__(self) -> int:
-        return self.frames
-
-    def read(self, index: int):
-        from ewald.data import DataCollection
-
-        m = self.modes
-        data = DataCollection(m.positions.copy(), m.types, m.cell.copy())
-        data.particles["Mass"] = m.masses
-        data.attributes["Phonon Modes"] = m
-        data.attributes["Timestep"] = int(index)
-        data.tables["Phonon Bands"] = dict(self._table)
-        return data
-
-
-class PhonopyYamlReader(PhononReader):
-    """phonopy band.yaml/mesh.yaml/qpoints.yaml with eigenvectors: phonon modes (PhononMode animates one); frames= per period, structure= for qpoints.yaml"""
-
-    patterns = ("band.yaml", "mesh.yaml", "qpoints.yaml", "*.yaml")
-    sniff = staticmethod(is_phonopy_yaml)
-    priority = 9
-    aliases = ("phonopy-yaml", "band.yaml", "phonon")
-
-
-class VaspPhononReader(PhononReader):
-    """VASP OUTCAR of an IBRION=5-8 run: Gamma phonon modes (PhononMode animates one)"""
-
-    patterns = ("OUTCAR*",)
-    sniff = staticmethod(is_outcar_phonon)
-    priority = 15          # before ewald's OUTCAR reader (16), which reads the ionic steps
-    aliases = ("outcar-phonon",)
-
+from ewald.io.phonon import PhononReader, PhonopyYamlReader, VaspPhononReader  # noqa: F401 (0.2 names)
+from ewald.phonon import PhononModes
 
 _NAMES = ("phonopy.yaml", "phonopy_params.yaml", "phonopy_disp.yaml", "phonopy.yml")
 
@@ -80,7 +28,7 @@ def _has_forces(path: str) -> bool:
 
 def sniff(path) -> bool:
     """A phonopy input yaml (``phonopy:`` header with a ``supercell_matrix``) with forces or
-    force constants available; band.yaml and mesh.yaml are left to ewald's own reader."""
+    force constants available; band.yaml and mesh.yaml are left to EWALD's own reader."""
     path = str(path)
     try:
         with open(path, encoding="utf-8", errors="replace") as fh:
@@ -180,29 +128,22 @@ class PhonopyForceConstantsReader(PhononReader):
 
 def reader_from_phonopy(phonon, frames: int = 24, npoints: int = 51, band_path=None, labels=None,
                         source: str = "") -> PhononReader:
-    """A :class:`PhononReader` over a ``phonopy.Phonopy`` with force constants (e.g.
-    aiida-phonopy's ``get_phonopy_instance()``): its band structure with eigenvectors as a
+    """A :class:`ewald.io.phonon.PhononReader` over a ``phonopy.Phonopy`` with force constants
+    (e.g. aiida-phonopy's ``get_phonopy_instance()``): its band structure with eigenvectors as a
     looping trajectory of ``frames`` frames. ``band_path``/``labels`` as in
     :func:`modes_from_phonopy`."""
-    reader = PhononReader.__new__(PhononReader)
-    reader.path = source or "phonopy"
-    reader.frames = int(frames)
-    if reader.frames < 1:
-        raise ValueError("frames must be at least 1")
-    reader.modes = modes_from_phonopy(phonon, npoints=npoints, source=source or "phonopy object",
-                                      band_path=band_path, labels=labels)
-    reader._table = reader.modes.table()
-    return reader
+    modes = modes_from_phonopy(phonon, npoints=npoints, source=source or "phonopy object",
+                               band_path=band_path, labels=labels)
+    return PhononReader.from_modes(modes, frames=frames, path=source or "phonopy")
 
 
 def from_phonopy(phonon, frames: int = 24, npoints: int = 51, band_path=None, labels=None,
                  source: str = "", mode: bool = True):
     """A ``Pipeline`` over a ``phonopy.Phonopy`` with force constants, as ``import_file`` gives
     for a phonon file: ``frames`` frames make one period, and with ``mode`` a
-    :class:`~ewald_phonopy.PhononMode` with its default mode is already added."""
+    :class:`~ewald.modifiers.PhononMode` with its default mode is already added."""
     from ewald import Pipeline, StaticSource
-
-    from .modifier import PhononMode
+    from ewald.modifiers import PhononMode
 
     reader = reader_from_phonopy(phonon, frames, npoints, band_path, labels, source)
     pipe = Pipeline(StaticSource([reader.read(i) for i in range(len(reader))]))
