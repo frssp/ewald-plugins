@@ -16,7 +16,7 @@ release is and checks that it loads.
 
 | Package | Plugin id | Adds |
 |---|---|---|
-| [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonopy/VASP phonon readers, `PhononMode` |
+| [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonon bands from phonopy force constants (`phonopy-fc`), `from_phonopy`; band.yaml, VASP phonons and `PhononMode` are in EWALD itself since 2026-10-23 |
 | [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
 | [ewald-aiida](packages/ewald-aiida) | `aiida` | `load("aiida:1234")`: AiiDA structures, trajectories, bands, workflows and aiida-phonopy results by PK/UUID, local or over SSH (read-only) |
 
