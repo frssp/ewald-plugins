@@ -1,0 +1,12 @@
+id = "phosphor_theme"
+name = "Phosphor UI theme"
+summary = "A green-on-black CRT terminal look for the desktop app: monospace text, square corners, bold icons"
+kinds = ["ui_theme"]
+source = "https://raw.githubusercontent.com/frssp/ewald-plugins/1f1bb6face53ee6d91c8dd15f06d98d8a5e7ac39/examples/phosphor_theme.py"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald-plugins/tree/main/examples"
+sha256 = "da96ba16abf8987a1fb14819e1cebce4547283e1adde6f106848f3a6f7e73747"
+description = "Sets every kind of key a UI theme may: all color tokens (phosphor green accents, amber data, a near-black 3D view), JetBrains Mono for the UI and editors (bundled with EWALD, so it looks the same on Windows, macOS and Linux), square corners, comfortable spacing, bold icons and extra style sheet rules (dashed panel-header rules, a bar on the current cell). After installing, pick Phosphor under Preferences > General > UI theme."
+tests = "https://raw.githubusercontent.com/frssp/ewald-plugins/1f1bb6face53ee6d91c8dd15f06d98d8a5e7ac39/tests/test_phosphor_theme.py"
