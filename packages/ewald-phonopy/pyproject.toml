@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewald-phonopy"
-version = "0.2.2"
-description = "Phonon modes in EWALD: phonopy band/mesh/qpoints.yaml, VASP IBRION=5-8 OUTCARs, phonopy force constants, and the PhononMode animation"
+version = "0.3.0"
+description = "Phonon bands in EWALD from phonopy force constants (phonopy.yaml + FORCE_SETS) and phonopy.Phonopy objects"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["ewald>=0.1", "phonopy>=2.20", "seekpath"]
@@ -14,12 +14,7 @@ dependencies = ["ewald>=0.1", "phonopy>=2.20", "seekpath"]
 phonopy = "ewald_phonopy"
 
 [project.entry-points."ewald.readers"]
-phonopy = "ewald_phonopy.reader:PhonopyYamlReader"
-vasp-phonon = "ewald_phonopy.reader:VaspPhononReader"
 phonopy-fc = "ewald_phonopy.reader:PhonopyForceConstantsReader"
-
-[project.entry-points."ewald.modifiers"]
-PhononMode = "ewald_phonopy.modifier:PhononMode"
 
 [tool.setuptools.packages.find]
 where = ["src"]

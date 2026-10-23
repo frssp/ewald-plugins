@@ -1,7 +1,7 @@
 id = "phonopy"
-display-name = "Phonons (phonopy, VASP)"
-version = "0.2.2"
+display-name = "phonopy force constants"
+version = "0.3.0"
 publisher = "frssp"
-description = "Phonon modes from phonopy band/mesh/qpoints.yaml, VASP IBRION=5-8 OUTCARs and phonopy force constants; PhononMode animates a mode"
+description = "Phonon bands that phonopy computes from phonopy.yaml with FORCE_SETS or force constants, and from phonopy.Phonopy objects; band.yaml, VASP OUTCARs and PhononMode are built into EWALD"
 requires-ewald = ">=0.1"
 plugin-api = 1
