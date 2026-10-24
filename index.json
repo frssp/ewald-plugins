@@ -128,12 +128,12 @@
     "panel",
     "workflow_source"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-simagent@954c25426095f481f1e2164eea1abae7daec24f4",
-   "version": "0.2.2",
+   "source": "pip:git+https://github.com/frssp/ewald-simagent@3824ea8b8d55df2fe95dca8fdbe649ea9da03285",
+   "version": "0.2.3",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-simagent",
-   "description": "Reads a sim-agent server's results API v1 with an access key made in its web UI (the key is kept in the OS keychain). A workflow opens as steps with their trajectories, structures and retrieved files; CHGCAR/LOCPOT and other files left on the cluster are read over SSH. Adds a sim-agent side bar (each calculation with the name of the chat that submitted it), the workflow AI tools and a Diagnose button (also `python -m ewald_simagent doctor`) that checks the connection step by step; a band-offset workflow opens with its potential lineup (VBM, CBM, E_F, Schottky barrier) as notebook cells. Read-only: submitting stays in sim-agent. Needs a sim-agent with the results API and an EWALD with workflow sources (after 2026-10-20)."
+   "description": "Reads a sim-agent server's results API v1 with an access key made in its web UI (the key is kept in the OS keychain). A workflow opens as steps with their trajectories, structures and retrieved files; CHGCAR/LOCPOT and other files left on the cluster are read over SSH. Adds a sim-agent side bar (each calculation with the name of the chat that submitted it), the workflow AI tools and a Diagnose button (also `python -m ewald_simagent doctor`) that checks the connection step by step; a band-offset workflow opens with its potential lineup (VBM, CBM, E_F, Schottky barrier) and a work-function workflow with the work function of every slab, as notebook cells. Read-only: submitting stays in sim-agent. Needs a sim-agent with the results API and an EWALD with workflow sources (after 2026-10-20)."
   }
  ]
 }
