@@ -1,0 +1,7 @@
+id = "protein"
+display-name = "Proteins (proof of concept)"
+version = "0.0.1"
+publisher = "frssp"
+description = "Read PDB/mmCIF with residues and chains, assign secondary structure (DSSP-style) and draw a cartoon that looks the same in OpenGL, the ray tracer and SVG/PDF."
+requires-ewald = ">=0.1"
+plugin-api = 1

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ewald-protein"
+version = "0.0.1"
+description = "Proof of concept: proteins in EWALD (PDB/mmCIF via gemmi, DSSP-style secondary structure, cartoon)"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["ewald>=0.1", "numpy", "gemmi>=0.6"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.entry-points."ewald.plugins"]
+protein = "ewald_protein"
+
+[project.entry-points."ewald.readers"]
+protein = "ewald_protein.reader:ProteinReader"
+
+[project.entry-points."ewald.modifiers"]
+SecondaryStructure = "ewald_protein.ss:SecondaryStructure"
+
+[project.entry-points."ewald.visuals"]
+Cartoon = "ewald_protein.cartoon:CartoonVis"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ewald_protein = ["ewald-plugin.toml"]
