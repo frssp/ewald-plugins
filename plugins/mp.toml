@@ -1,0 +1,10 @@
+id = "mp"
+name = "Materials Project"
+summary = "The Materials Project with your API key: structures, band structures, DOS, charge densities and relaxation trajectories, load(\"mp:mp-149/bands\")"
+kinds = ["reader", "tool", "panel", "settings_page"]
+source = "pip:git+https://github.com/frssp/ewald-plugins@56488248d348c149995a89f07cdece2148e89472#subdirectory=packages/ewald-mp"
+version = "0.1.0"
+requires_ewald = ">=0.1"
+author = "frssp"
+homepage = "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-mp"
+description = "Through mp-api (installed with it). Set your API key under Preferences > Materials Project; EWALD keeps it in the system keychain. load(\"mp:mp-149\") opens the structure; /bands, /dos and /electronic add the electronic structure, /chgcar the charge density, /relax the relaxation as frames. search(\"Li-P-S\", is_stable=True) lists materials with energy above hull and band gap; the side bar searches and opens; the AI gets a read-only mp_search tool. For structures without a key, use the OPTIMADE plugin."
