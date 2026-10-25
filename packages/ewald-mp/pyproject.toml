@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ewald-mp"
+version = "0.1.0"
+description = "Materials Project in EWALD through mp-api (your API key in the keychain): structures, band structures, DOS, charge densities and relaxation trajectories, load(\"mp:mp-149/bands\")"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["ewald>=0.1", "numpy", "mp-api>=0.45"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.entry-points."ewald.plugins"]
+mp = "ewald_mp"
+
+[project.entry-points."ewald.readers"]
+mp = "ewald_mp.reader:MPReader"
+
+[project.entry-points."ewald.panels"]
+materials_project = "ewald_mp.panel:materials_project"
+
+[project.entry-points."ewald.settings_pages"]
+mp = "ewald_mp.client:MPSettings"
+
+[project.entry-points."ewald.tools"]
+mp_search = "ewald_mp.tools:mp_search"
+
+[project.scripts]
+ewald-mp = "ewald_mp.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ewald_mp = ["ewald-plugin.toml"]
