@@ -19,6 +19,7 @@ release is and checks that it loads.
 | [ewald-phonopy](packages/ewald-phonopy) | `phonopy` | phonon bands from phonopy force constants (`phonopy-fc`), `from_phonopy`; band.yaml, VASP phonons and `PhononMode` are in EWALD itself since 2026-10-23 |
 | [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
 | [ewald-aiida](packages/ewald-aiida) | `aiida` | `load("aiida:1234")`: AiiDA structures, trajectories, bands, workflows and aiida-phonopy results by PK/UUID, local or over SSH (read-only) |
+| [ewald-optimade](packages/ewald-optimade) | `optimade` | `load("optimade:mp/mp-149")`, `search("Li-P-S")`: structures of Materials Project, COD, OQMD, Alexandria, NOMAD, Materials Cloud and other OPTIMADE databases, a search side bar, no key |
 
 A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z`) with
 `#subdirectory=packages/ewald-<name>`, and bumps `version` in the entry, `pyproject.toml` and
