@@ -20,6 +20,7 @@ release is and checks that it loads.
 | [ewald-plumed](packages/ewald-plumed) | `plumed` | `Plumed`, `LoadColvar`, `FreeEnergySurface`, two Claude tools |
 | [ewald-aiida](packages/ewald-aiida) | `aiida` | `load("aiida:1234")`: AiiDA structures, trajectories, bands, workflows and aiida-phonopy results by PK/UUID, local or over SSH (read-only) |
 | [ewald-optimade](packages/ewald-optimade) | `optimade` | `load("optimade:mp/mp-149")`, `search("Li-P-S")`: structures of Materials Project, COD, OQMD, Alexandria, NOMAD, Materials Cloud and other OPTIMADE databases, a search side bar, no key |
+| [ewald-mp](packages/ewald-mp) | `mp` | `load("mp:mp-149/bands")`: Materials Project structures, band structures, DOS, charge densities and relaxation trajectories through mp-api with your API key (kept in the keychain); `search("Li-P-S", is_stable=True)`, a side bar |
 
 A release points the entry's `source` at a commit (or a tag `ewald-<name>-vX.Y.Z`) with
 `#subdirectory=packages/ewald-<name>`, and bumps `version` in the entry, `pyproject.toml` and

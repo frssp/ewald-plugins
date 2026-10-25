@@ -1,0 +1,7 @@
+id = "mp"
+display-name = "Materials Project"
+version = "0.1.0"
+publisher = "frssp"
+description = "Materials Project through mp-api with your API key (kept in the keychain): load(\"mp:mp-149\"), \"mp:mp-149/bands\", \"/dos\", \"/chgcar\", \"/relax\"; search(\"Li-P-S\", is_stable=True); a search side bar and a read-only AI search tool."
+requires-ewald = ">=0.1"
+plugin-api = 1
