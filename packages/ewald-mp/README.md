@@ -15,6 +15,11 @@ Preferences › Materials Project (get it at https://next-gen.materialsproject.o
 keeps it in the system keychain, never in a settings file. Without one there, mp-api's own
 places work too (`MP_API_KEY`, `~/.pmgrc.yaml`).
 
+Behind a proxy that re-signs HTTPS ("CERTIFICATE_VERIFY_FAILED"), the plugin makes Python
+trust the operating system's certificate store before mp-api starts (`truststore`), as EWALD's
+own downloads do. Preferences › Materials Project › Advanced › Use the system certificate store
+turns that off.
+
 ```python
 from ewald import load
 from ewald_mp import search

@@ -69,8 +69,8 @@
     "panel",
     "settings_page"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@56488248d348c149995a89f07cdece2148e89472#subdirectory=packages/ewald-mp",
-   "version": "0.1.0",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@2ac10da071f34b2f7cb42c8e89376e7926cc1386#subdirectory=packages/ewald-mp",
+   "version": "0.1.1",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-mp",
