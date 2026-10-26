@@ -55,6 +55,7 @@ def test_missing_key_says_where_to_set_it(monkeypatch):
     import sys
     import types
 
+    monkeypatch.setattr(client, "trust_system_store", lambda: False)
     fake = types.ModuleType("mp_api.client")
     fake.MPRester = Refuses
     monkeypatch.setitem(sys.modules, "mp_api", types.ModuleType("mp_api"))
@@ -223,3 +224,57 @@ def test_side_bar(mp, monkeypatch):
     panel.wait()
     app.processEvents()
     assert "type a formula" in panel.note.text()
+
+
+# ------------------------------------------------------------------ certificates behind a proxy
+def _fake_mp_api(monkeypatch, order, error=None):
+    import sys
+    import types
+
+    class Rester:
+        def __init__(self, *a, **k):
+            order.append("MPRester")
+            if error:
+                raise error
+
+    fake = types.ModuleType("mp_api.client")
+    fake.MPRester = Rester
+    monkeypatch.setitem(sys.modules, "mp_api", types.ModuleType("mp_api"))
+    monkeypatch.setitem(sys.modules, "mp_api.client", fake)
+
+
+def test_system_store_is_used_before_mp_api(monkeypatch):
+    truststore = pytest.importorskip("truststore")
+    from ewald_mp import client
+
+    order = []
+    monkeypatch.setattr(client, "_trust_injected", False)
+    monkeypatch.setattr(truststore, "inject_into_ssl", lambda: order.append("inject"))
+    _fake_mp_api(monkeypatch, order)
+    client.rester()
+    client.rester()
+    assert order == ["inject", "MPRester", "MPRester"]          # once, and before mp-api connects
+
+
+def test_system_store_can_be_turned_off(monkeypatch):
+    truststore = pytest.importorskip("truststore")
+    from ewald import plugins
+    from ewald_mp import client
+
+    plugins.settings_pages()["mp"].save({"system_certificates": False})
+    monkeypatch.setattr(client, "_trust_injected", False)
+    monkeypatch.setattr(truststore, "inject_into_ssl", lambda: pytest.fail("injected although turned off"))
+    assert client.trust_system_store() is False
+
+
+def test_certificate_error_says_what_to_do(monkeypatch):
+    pytest.importorskip("truststore")
+    from ewald_mp import client
+
+    monkeypatch.setattr(client, "trust_system_store", lambda: False)
+    err = OSError("HTTPSConnectionPool(host='api.materialsproject.org', port=443): Max retries exceeded with url: "
+                  "/heartbeat (Caused by SSLError(SSLCertVerificationError(1, '[SSL: CERTIFICATE_VERIFY_FAILED] "
+                  "certificate verify failed: unable to get local issuer certificate')))")
+    _fake_mp_api(monkeypatch, [], err)
+    with pytest.raises(ConnectionError, match="system certificate store"):
+        client.rester()

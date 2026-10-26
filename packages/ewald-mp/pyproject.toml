@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewald-mp"
-version = "0.1.0"
+version = "0.1.1"
 description = "Materials Project in EWALD through mp-api (your API key in the keychain): structures, band structures, DOS, charge densities and relaxation trajectories, load(\"mp:mp-149/bands\")"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["ewald>=0.1", "numpy", "mp-api>=0.45"]
+dependencies = ["ewald>=0.1", "numpy", "mp-api>=0.45", "truststore>=0.9"]
 
 [project.optional-dependencies]
 test = ["pytest"]
