@@ -162,8 +162,8 @@
     "panel",
     "workflow_source"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-simagent@9631230b90d154dd03cfc194c940559bf8aa3262",
-   "version": "0.2.4",
+   "source": "pip:git+https://github.com/frssp/ewald-simagent@958a94abe1d3a6b9675f2f0e38421c93b378be96",
+   "version": "0.2.5",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-simagent",
