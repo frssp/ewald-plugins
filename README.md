@@ -93,6 +93,10 @@ uses `id` to match an entry with an installed plugin, and `version` to offer upd
 are trusted only as far as this repository's review goes: installing one runs its code with
 your user's rights, as with VS Code extensions.
 
+## Contributing
+
+[CONTRIBUTING.md](CONTRIBUTING.md) says how to list a plugin or change a first-party one.
+
 ## License
 
 MIT ([LICENSE](LICENSE)), like EWALD itself. PLUMED, phonopy and AiiDA are separate packages with
