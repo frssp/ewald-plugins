@@ -80,7 +80,8 @@ replaces that one method when it opens an archive.
 A described workflow's steps carry, besides what the side bar shows, plain data for analyses
 that look for steps by what they did rather than by their names: `step.inputs` (the code's
 parameters, for VASP the INCAR; the k-point mesh or path; the structure's formula, sites,
-volume and vacuum axis; `parents`, the processes that made an input), `step.files` (retrieved),
+volume, vacuum axis and extras; `parents`, the processes that made an input), `step.calc_id`
+(the CalcJob they come from), `step.files` (retrieved),
 `step.extras` and `step.shape` (`ewald_aiida.shape`): a `kind` (`relax`, `static`, `bands`,
 `dos`, `md`, `phonon`, from IBRION/NSW/ICHARG and the k-points) and `flags` (`cell_relax`,
 `slab`, `potential` for LVHAR or a planar average, `charged` for NELECT). A step of a code

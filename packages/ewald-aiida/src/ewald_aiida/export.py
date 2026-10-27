@@ -571,7 +571,7 @@ def calc_inputs(calc):
     """What a CalcJob was asked to compute, as plain data: ``parameters`` (the code's input
     dictionary; for VASP the INCAR, also when it sits under an ``incar`` key), ``kpoints``
     (``{"mesh": [...]}`` or ``{"path": n}`` for an explicit list), ``structure`` (formula, sites,
-    volume in Å³, ``vacuum_axis``) and ``parents``: the processes of the same provenance that
+    volume in Å³, ``vacuum_axis``, ``extras``) and ``parents``: the processes of the same provenance that
     made an input (``{"pk", "via"}``), so the steps can be read as a graph."""
     from aiida import orm
     from aiida.common.links import LinkType
@@ -590,7 +590,7 @@ def calc_inputs(calc):
         elif label == "structure" and isinstance(node, orm.StructureData):
             out["structure"] = {"uuid": node.uuid, "formula": node.get_formula(mode="hill"),
                                 "sites": len(node.sites), "volume": float(node.get_cell_volume()),
-                                "vacuum_axis": _vacuum_axis(node)}
+                                "vacuum_axis": _vacuum_axis(node), "extras": _json_ready(node.base.extras.all)}
         creator = node.base.links.get_incoming(link_type=LinkType.CREATE).all()
         if creator and creator[0].node.pk != calc.pk:
             out.setdefault("parents", []).append({"pk": creator[0].node.pk, "via": label})

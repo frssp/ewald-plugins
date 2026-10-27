@@ -132,8 +132,10 @@ def _step(d: dict, path: str, profile, base) -> WorkflowStep:
 def _facts(step, d: dict) -> None:
     """Plain data a caller reads beyond what EWALD shows (set, not passed: EWALD's dataclasses
     have no fields for them): ``extras``, and for a calculation ``files`` (retrieved),
-    ``inputs`` (:func:`ewald_aiida.export.calc_inputs`) and ``shape`` (:mod:`ewald_aiida.shape`)."""
+    ``inputs`` (:func:`ewald_aiida.export.calc_inputs`), ``shape`` (:mod:`ewald_aiida.shape`) and
+    ``calc_id``, the PK of the CalcJob they were read from (a restart step's last one)."""
     step.extras = dict(d.get("extras") or {})
+    step.calc_id = str(d["pk"]) if "inputs" in d else ""
     step.files = list(d.get("files") or [])
     step.inputs = dict(d.get("inputs") or {})
     step.shape = shape.describe(step.inputs, step.files) if "inputs" in d else {}

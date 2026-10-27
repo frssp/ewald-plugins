@@ -112,7 +112,8 @@ def test_steps_carry_inputs_files_and_shape(vasp_wg):
     assert static.files == ["locpot_planar_avg.json", "vasprun.xml"]
     assert static.inputs["kpoints"] == {"mesh": [8, 8, 1]}
     assert static.inputs["parameters"]["NELECT"] == 30        # unwrapped from "incar"
-    assert static.runs == 1
+    assert static.runs == 1 and static.calc_id == str(vasp_wg["static"].pk)
+    assert static.inputs["structure"]["extras"] == {}
     assert wf.extras["sim_agent_template"] == "vasp_workfunction"
 
 
