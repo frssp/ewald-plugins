@@ -29,18 +29,68 @@ _TRAJ_ARRAYS = {"positions", "cells", "steps", "times", "symbols"}
 
 
 # ----------------------------------------------------------------------- profile and nodes
+#: profile name -> folder of an extracted AiiDA archive opened as a read-only profile
+#: (:mod:`ewald_aiida.archives` fills it; the folder is named like the profile)
+ARCHIVES: dict = {}
+
+
 def load_profile(name=None):
-    """Load AiiDA profile ``name`` (None: the default one) for reading."""
+    """Load AiiDA profile ``name`` (None: the default one) for reading; a name in
+    :data:`ARCHIVES` opens that extracted archive, read-only, without a database server."""
     import aiida
 
     current = aiida.get_profile()
     if current is not None and (name is None or current.name == name):
         return current
+    if name in ARCHIVES:
+        from aiida.storage.sqlite_zip.backend import SqliteZipBackend
+
+        _patch_folder_repository()
+        _release(current)
+        return aiida.load_profile(SqliteZipBackend.create_profile(ARCHIVES[name]), allow_switch=True)
+    _release(current)
     try:
         return aiida.load_profile(name, allow_switch=True)
     except Exception as exc:  # ProfileConfigurationError, MissingConfigurationError, ...
         hint = "set one with `verdi profile set-default`" if name is None else "see `verdi profile list`"
         raise LookupError(f"cannot load AiiDA profile {name or '(default)'}: {exc}; {hint}") from exc
+
+
+def _patch_folder_repository():
+    """Make AiiDA read files from an extracted (folder) archive: its ``FolderBackendRepository.open``
+    opens them with ``open('rb', encoding='utf-8')``, which Python refuses (aiida-core 2.9,
+    ``aiida/storage/sqlite_zip/backend.py``), so every file and array of a folder archive fails."""
+    from contextlib import contextmanager
+
+    from aiida.storage.sqlite_zip import backend
+
+    cls = backend.FolderBackendRepository
+    if getattr(cls, "_ewald_reads_binary", False):
+        return
+
+    @contextmanager
+    def open_binary(self, key):
+        path = self._path.joinpath(key)
+        if not path.is_file():
+            raise FileNotFoundError(f"object with key `{key}` does not exist.")
+        with path.open("rb") as handle:
+            yield handle
+
+    cls.open = open_binary
+    cls._ewald_reads_binary = True
+
+
+def _release(profile):
+    """Close the SQLite connections of an open archive profile before switching away, so that
+    Windows lets its folder be deleted later (AiiDA closes the session, not the engine pool)."""
+    if profile is None or profile.name not in ARCHIVES:
+        return
+    from contextlib import suppress
+
+    from aiida.manage import get_manager
+
+    with suppress(Exception):  # best effort: a closed or broken storage has nothing open
+        get_manager().get_profile_storage().get_session().get_bind().dispose()
 
 
 def load(node, links=(), profile=None):
@@ -484,12 +534,76 @@ def _output(t):
     return out
 
 
+def retrieved_files(calc):
+    """Names of the files in a CalcJob's ``retrieved`` folder (``a/b`` for nested ones)."""
+    from aiida import orm
+
+    folders = [t.node for t in outgoing(calc) if t.link_label == "retrieved" and isinstance(t.node, orm.FolderData)]
+    if not folders:
+        return []
+    repo, names, stack = folders[0].base.repository, [], [""]
+    while stack:
+        prefix = stack.pop()
+        for obj in repo.list_objects(prefix or None):
+            full = f"{prefix}/{obj.name}" if prefix else obj.name
+            (stack if obj.file_type.name == "DIRECTORY" else names).append(full)
+    return sorted(names)
+
+
+def _vacuum_axis(structure, gap=5.0):
+    """The cell axis (0, 1, 2) along which the atoms leave a gap of at least ``gap`` Å, or None."""
+    cell = np.array(structure.cell, dtype=float)
+    pos = np.array([s.position for s in structure.sites], dtype=float)
+    if not len(pos):
+        return None
+    frac = np.mod(pos @ np.linalg.inv(cell), 1.0)
+    for axis in range(3):
+        if not structure.pbc[axis]:
+            return axis
+        f = np.sort(frac[:, axis])
+        widest = max(np.max(np.diff(f)) if len(f) > 1 else 0.0, 1.0 - f[-1] + f[0])
+        if widest * np.linalg.norm(cell[axis]) >= gap:
+            return axis
+    return None
+
+
+def calc_inputs(calc):
+    """What a CalcJob was asked to compute, as plain data: ``parameters`` (the code's input
+    dictionary; for VASP the INCAR, also when it sits under an ``incar`` key), ``kpoints``
+    (``{"mesh": [...]}`` or ``{"path": n}`` for an explicit list), ``structure`` (formula, sites,
+    volume in Å³, ``vacuum_axis``) and ``parents``: the processes of the same provenance that
+    made an input (``{"pk", "via"}``), so the steps can be read as a graph."""
+    from aiida import orm
+    from aiida.common.links import LinkType
+
+    out = {}
+    for t in calc.base.links.get_incoming(link_type=LinkType.INPUT_CALC).all():
+        node, label = t.node, t.link_label
+        if label == "parameters" and isinstance(node, orm.Dict):
+            params = node.get_dict()
+            out["parameters"] = params["incar"] if isinstance(params.get("incar"), dict) else params
+        elif label == "kpoints" and isinstance(node, orm.KpointsData):
+            try:
+                out["kpoints"] = {"mesh": [int(n) for n in node.get_kpoints_mesh()[0]]}
+            except AttributeError:
+                out["kpoints"] = {"path": len(node.get_kpoints())}
+        elif label == "structure" and isinstance(node, orm.StructureData):
+            out["structure"] = {"uuid": node.uuid, "formula": node.get_formula(mode="hill"),
+                                "sites": len(node.sites), "volume": float(node.get_cell_volume()),
+                                "vacuum_axis": _vacuum_axis(node)}
+        creator = node.base.links.get_incoming(link_type=LinkType.CREATE).all()
+        if creator and creator[0].node.pk != calc.pk:
+            out.setdefault("parents", []).append({"pk": creator[0].node.pk, "via": label})
+    return out
+
+
 def describe(node, profile=None, depth=6, links=()):
     """A process and everything it called, as JSON-ready dicts: ``pk``, ``uuid``,
     ``process_label``, ``process_state``, ``exit_status``, ``label``, ``description``, ``ctime``,
     ``call_label``, ``view`` (what ``load`` opens for it, or None), ``scalars``, ``outputs``
-    (structures, trajectories, bands, phonons: link label, kind, pk), ``work_dir`` and
-    ``computer`` of a CalcJob, and ``called``, in call order, ``depth`` levels down."""
+    (structures, trajectories, bands, phonons: link label, kind, pk), ``work_dir``,
+    ``computer``, ``files`` (:func:`retrieved_files`) and ``inputs`` (:func:`calc_inputs`) of a
+    CalcJob, ``extras``, and ``called``, in call order, ``depth`` levels down."""
     top = load(node, links, profile)
 
     def view_of(n):
@@ -500,7 +614,8 @@ def describe(node, profile=None, depth=6, links=()):
 
     def one(n, level):
         d = info(n)
-        d.update(description=n.description, ctime=n.ctime.isoformat(), view=view_of(n))
+        d.update(description=n.description, ctime=n.ctime.isoformat(), view=view_of(n),
+                 extras=_json_ready(n.base.extras.all))
         if not is_process(n):
             d["outputs"] = [o for o in [_output(type("T", (), {"node": n, "link_label": ""}))] if o]
             return d
@@ -509,6 +624,8 @@ def describe(node, profile=None, depth=6, links=()):
         if hasattr(n, "get_remote_workdir"):
             d["work_dir"] = n.get_remote_workdir() or ""
             d["computer"] = n.computer.label if n.computer is not None else ""
+            d["files"] = retrieved_files(n)
+            d["inputs"] = calc_inputs(n)
         if level < depth:
             d["called"] = [one(c, level + 1) for c in sorted(n.called, key=lambda c: (c.ctime, c.pk))]
         return d
@@ -517,6 +634,14 @@ def describe(node, profile=None, depth=6, links=()):
 
 
 # ----------------------------------------------------------------------- command line
+def _json_ready(value):
+    """``value`` with anything JSON cannot hold dropped (extras may hold dates or arrays)."""
+    try:
+        return json.loads(json.dumps(value, default=lambda _o: None))
+    except (TypeError, ValueError):
+        return {}
+
+
 def _node_arg(text):
     return int(text) if text.isdigit() else text
 

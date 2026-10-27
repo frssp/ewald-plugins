@@ -15,7 +15,7 @@ import os
 import shlex
 import zlib
 
-from . import export
+from . import archives, export
 from .uri import AiidaURI
 
 _PYTHON: dict = {}  # host -> the remote python that runs verdi
@@ -78,6 +78,7 @@ def bundle(uri: AiidaURI, what: str | None = None, profile: str | None = None, p
            cache: bool = True):
     """``(meta, arrays)`` of :func:`ewald_aiida.export.bundle` for ``uri``, local or remote."""
     if uri.host is None:
+        archives.resolve(profile or uri.profile)
         return export.bundle(uri.node, uri.links, what, profile or uri.profile)
     path = _cache_path(uri, what, profile)
     if cache and path and os.path.exists(path):
@@ -109,6 +110,7 @@ def _cache_path(uri: AiidaURI, what, profile) -> str | None:
 
 def tree(uri: AiidaURI, profile: str | None = None, depth: int = 4, python: str | None = None) -> str:
     if uri.host is None:
+        archives.resolve(profile or uri.profile)
         return export.tree(uri.node, profile or uri.profile, depth, uri.links)
     args = ["tree", "--depth", str(depth)] + (["--profile", profile or uri.profile] if profile or uri.profile else [])
     return run(uri, args + [str(uri.node), *uri.links], python).decode()
@@ -116,6 +118,7 @@ def tree(uri: AiidaURI, profile: str | None = None, depth: int = 4, python: str 
 
 def find(host: AiidaURI | None, process_label=None, profile=None, limit=20, finished_ok=None, python=None):
     if host is None or host.host is None:
+        archives.resolve(profile)
         return export.find(process_label, profile, limit, finished_ok)
     args = ["find", "--limit", str(limit)] + (["--profile", profile] if profile else []) + \
            (["--process", process_label] if process_label else []) + (["--ok"] if finished_ok else [])
@@ -125,6 +128,7 @@ def find(host: AiidaURI | None, process_label=None, profile=None, limit=20, fini
 def page(host: AiidaURI | None, profile=None, limit=50, query=None, offset=0, python=None) -> dict:
     """One page of whole workflows (processes nobody called), newest first: ``{"rows", "next"}``."""
     if host is None or host.host is None:
+        archives.resolve(profile)
         return export.page(None, profile, limit, None, query, offset, roots=True)
     args = ["find", "--page", "--roots", "--limit", str(limit), "--offset", str(offset)] + \
            (["--profile", profile] if profile else []) + (["--query", query] if query else [])
@@ -134,6 +138,7 @@ def page(host: AiidaURI | None, profile=None, limit=50, query=None, offset=0, py
 def describe(uri: AiidaURI, profile=None, depth: int = 6, python=None) -> dict:
     """:func:`ewald_aiida.export.describe` of ``uri``, local or on its host."""
     if uri.host is None:
+        archives.resolve(profile or uri.profile)
         return export.describe(uri.node, profile or uri.profile, depth, uri.links)
     args = ["describe", "--depth", str(depth)] + (["--profile", profile or uri.profile] if profile or uri.profile else [])
     return json.loads(run(uri, args + [str(uri.node), *uri.links], python))

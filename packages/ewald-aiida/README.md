@@ -53,6 +53,39 @@ To read another account's profile you need that account's SSH login (simplest), 
 access to its `~/.aiida` configuration, its file repository and its database (a read-only
 PostgreSQL role) from your own account.
 
+## AiiDA archives
+
+An AiiDA archive (`.aiida`, from `verdi archive create` or a results server) opens without a
+database server or a configured profile:
+
+```python
+import ewald_aiida
+
+wf = ewald_aiida.open_archive("wf.aiida")          # the workflow in it, as in the side bar
+pipe = load(wf.path)                               # aiida:archive-3f9c2e1a7b6d5e4f/<uuid>
+path = ewald_aiida.retrieved_file("archive-3f9c2e1a7b6d5e4f", step.id, "vasprun.xml")
+```
+
+The archive is extracted once into EWALD's cache (`aiida-archives/archive-<digest>/`, by the
+SHA-256 of its bytes) and opened there as a read-only profile, so a saved `aiida:archive-...`
+path still opens in a later session while the cache holds it. It is opened as a folder, not as
+the zip: from the zip AiiDA copies the database to a temporary file that it cannot delete on
+Windows (`WinError 32`). An archive from an older AiiDA is migrated on the way in; one from a
+newer AiiDA is refused with the version to upgrade to. aiida-core 2.9 cannot read files from a
+folder archive (`FolderBackendRepository.open` passes an encoding to a binary open); the plugin
+replaces that one method when it opens an archive.
+
+## What each step computed
+
+A described workflow's steps carry, besides what the side bar shows, plain data for analyses
+that look for steps by what they did rather than by their names: `step.inputs` (the code's
+parameters, for VASP the INCAR; the k-point mesh or path; the structure's formula, sites,
+volume and vacuum axis; `parents`, the processes that made an input), `step.files` (retrieved),
+`step.extras` and `step.shape` (`ewald_aiida.shape`): a `kind` (`relax`, `static`, `bands`,
+`dos`, `md`, `phonon`, from IBRION/NSW/ICHARG and the k-points) and `flags` (`cell_relax`,
+`slab`, `potential` for LVHAR or a planar average, `charged` for NELECT). A step of a code
+other than VASP gets kind `""`.
+
 ## In the GUI: the AiiDA side bar
 
 The **AiiDA** button on EWALD's activity bar opens a side bar with the profile's whole
@@ -97,4 +130,6 @@ role. An `aiida:` string in a notebook you received reads from your own profiles
 `pytest packages/ewald-aiida/tests` builds a throwaway in-memory SQLite profile with a relaxation
 WorkChain (two restarts), an electronic band structure and an aiida-phonopy result (Cu, EMT
 forces), and checks that loading changes nothing in the database. The remote path is tested by
-running the exact `python -c` command the SSH host would get against that profile.
+running the exact `python -c` command the SSH host would get against that profile. Archives are
+tested by exporting a VASP-like workflow and opening it in a fresh Python (opening an archive
+switches AiiDA's profile, which would empty the in-memory one).
