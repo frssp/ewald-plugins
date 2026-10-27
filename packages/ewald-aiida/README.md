@@ -73,7 +73,9 @@ the zip: from the zip AiiDA copies the database to a temporary file that it cann
 Windows (`WinError 32`). An archive from an older AiiDA is migrated on the way in; one from a
 newer AiiDA is refused with the version to upgrade to. aiida-core 2.9 cannot read files from a
 folder archive (`FolderBackendRepository.open` passes an encoding to a binary open); the plugin
-replaces that one method when it opens an archive.
+replaces that one method when it opens an archive. An archive without its file contents (only
+`db.sqlite3` and an empty `repo/`, as a results server may send for describing a workflow)
+opens the same way and describes every step with its file names; `retrieved_file` then fails.
 
 ## What each step computed
 
@@ -81,7 +83,7 @@ A described workflow's steps carry, besides what the side bar shows, plain data 
 that look for steps by what they did rather than by their names: `step.inputs` (the code's
 parameters, for VASP the INCAR; the k-point mesh or path; the structure's formula, sites,
 volume, vacuum axis and extras; `parents`, the processes that made an input), `step.calc_id`
-(the CalcJob they come from), `step.files` (retrieved),
+and `step.calc_uuid` (the CalcJob they come from), `step.files` (retrieved),
 `step.extras` and `step.shape` (`ewald_aiida.shape`): a `kind` (`relax`, `static`, `bands`,
 `dos`, `md`, `phonon`, from IBRION/NSW/ICHARG and the k-points) and `flags` (`cell_relax`,
 `slab`, `potential` for LVHAR or a planar average, `charged` for NELECT). A step of a code

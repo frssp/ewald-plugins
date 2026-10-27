@@ -113,6 +113,7 @@ def test_steps_carry_inputs_files_and_shape(vasp_wg):
     assert static.inputs["kpoints"] == {"mesh": [8, 8, 1]}
     assert static.inputs["parameters"]["NELECT"] == 30        # unwrapped from "incar"
     assert static.runs == 1 and static.calc_id == str(vasp_wg["static"].pk)
+    assert static.calc_uuid == vasp_wg["static"].uuid
     assert static.inputs["structure"]["extras"] == {}
     assert wf.extras["sim_agent_template"] == "vasp_workfunction"
 
@@ -173,3 +174,31 @@ def test_not_an_archive(tmp_path):
         archives.open_archive(bad)
     with pytest.raises(LookupError, match="open its .aiida file again"):
         archives.resolve("archive-0000000000000000")
+
+
+def test_archive_without_file_contents_still_describes(vasp_wg, tmp_path):
+    """What a results server sends for describing: db.sqlite3 and an empty repo/, no bytes."""
+    import zipfile
+
+    from aiida.tools.archive import create_archive
+
+    full = tmp_path / "wf.aiida"
+    create_archive([vasp_wg["wg"]], filename=full)
+    meta = tmp_path / "meta.aiida"
+    with zipfile.ZipFile(full) as zin, zipfile.ZipFile(meta, "w") as zout:
+        for info in zin.infolist():
+            if not info.filename.startswith("repo/"):
+                zout.writestr(info, zin.read(info))
+        zout.writestr("repo/", b"")
+    script = textwrap.dedent("""
+        import json, sys
+        import ewald_aiida
+        wf = ewald_aiida.open_archive(sys.argv[1])
+        st = {s.name: s for _, s in wf.walk()}["slab_111_t1_static"]
+        print(json.dumps({"shape": st.shape, "files": st.files, "uuid": st.calc_uuid}))
+    """)
+    env = {**os.environ, "EWALD_CACHE_DIR": str(tmp_path / "cache"), "AIIDA_PATH": str(tmp_path / "aiida")}
+    out = _run(script, str(meta), env=env)
+    assert out["shape"]["kind"] == "static" and "potential" in out["shape"]["flags"]
+    assert out["files"] == ["locpot_planar_avg.json", "vasprun.xml"]
+    assert out["uuid"] == vasp_wg["static"].uuid
