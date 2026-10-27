@@ -590,7 +590,7 @@ def calc_inputs(calc):
         elif label == "structure" and isinstance(node, orm.StructureData):
             out["structure"] = {"uuid": node.uuid, "formula": node.get_formula(mode="hill"),
                                 "sites": len(node.sites), "volume": float(node.get_cell_volume()),
-                                "vacuum_axis": _vacuum_axis(node), "extras": _json_ready(node.base.extras.all)}
+                                "vacuum_axis": _vacuum_axis(node), "extras": _extras(node)}
         creator = node.base.links.get_incoming(link_type=LinkType.CREATE).all()
         if creator and creator[0].node.pk != calc.pk:
             out.setdefault("parents", []).append({"pk": creator[0].node.pk, "via": label})
@@ -615,7 +615,7 @@ def describe(node, profile=None, depth=6, links=()):
     def one(n, level):
         d = info(n)
         d.update(description=n.description, ctime=n.ctime.isoformat(), view=view_of(n),
-                 extras=_json_ready(n.base.extras.all))
+                 extras=_extras(n))
         if not is_process(n):
             d["outputs"] = [o for o in [_output(type("T", (), {"node": n, "link_label": ""}))] if o]
             return d
@@ -634,6 +634,11 @@ def describe(node, profile=None, depth=6, links=()):
 
 
 # ----------------------------------------------------------------------- command line
+def _extras(node):
+    """A node's extras without AiiDA's own (``_aiida_hash``, ...), JSON-ready."""
+    return _json_ready({k: v for k, v in node.base.extras.all.items() if not k.startswith("_aiida")})
+
+
 def _json_ready(value):
     """``value`` with anything JSON cannot hold dropped (extras may hold dates or arrays)."""
     try:
