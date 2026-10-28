@@ -69,12 +69,12 @@
     "panel",
     "settings_page"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@2ac10da071f34b2f7cb42c8e89376e7926cc1386#subdirectory=packages/ewald-mp",
-   "version": "0.1.1",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@100986392926beecc1239c218feb9a00b19f9653#subdirectory=packages/ewald-mp",
+   "version": "0.2.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-mp",
-   "description": "Through mp-api (installed with it). Set your API key under Preferences > Materials Project; EWALD keeps it in the system keychain. load(\"mp:mp-149\") opens the structure; /bands, /dos and /electronic add the electronic structure, /chgcar the charge density, /relax the relaxation as frames. search(\"Li-P-S\", is_stable=True) lists materials with energy above hull and band gap; the side bar searches and opens; the AI gets a read-only mp_search tool. For structures without a key, use the OPTIMADE support built into EWALD (load(\"optimade:mp/mp-149\"))."
+   "description": "Installs nothing else: talks to the Materials Project REST API and its open data directly (mp-api optional: pip install mp-api adds /relax trajectories and the newest band structures). Set your API key under Preferences > Materials Project; EWALD keeps it in the system keychain. load(\"mp:mp-149\") opens the structure; /bands, /dos and /electronic add the electronic structure, /chgcar the charge density, /relax (with mp-api) the relaxation as frames. search(\"Li-P-S\", is_stable=True) lists materials with energy above hull and band gap; the side bar searches and opens; the AI gets a read-only mp_search tool. For structures without a key, use the OPTIMADE support built into EWALD (load(\"optimade:mp/mp-149\"))."
   },
   {
    "id": "phonopy",

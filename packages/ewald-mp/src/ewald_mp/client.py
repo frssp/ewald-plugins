@@ -1,11 +1,16 @@
-"""The Materials Project connection: the API key and an ``mp_api`` ``MPRester``.
+"""The Materials Project connection: the API key and the client the reader and search talk to.
+
+Without mp-api that is :class:`ewald_mp.rest.Rester` (the REST API and MP's open data through
+urllib, nothing else to install); with mp-api installed (``ewald-mp[full]``) and "Use mp-api when
+it is installed" on, an ``mp_api`` ``MPRester``, which also reads relaxation trajectories and the
+newest band structures and DOS from MP's Delta tables. Both answer the same calls.
 
 The key is a secret field of the settings page (Preferences › Materials Project), so EWALD keeps
 it in the operating system's keychain (``plugin:mp:api_key``), never in a settings file or the
 environment. Without one there, mp-api's own places are used (``MP_API_KEY``, ``~/.pmgrc.yaml``),
 so a key you already set up for pymatgen works too.
 
-mp-api talks through requests and boto3, which trust only certifi's list of authorities, so
+With mp-api: it talks through requests and boto3, which trust only certifi's list of authorities, so
 behind a proxy that re-signs HTTPS (company and university networks) every call fails with
 CERTIFICATE_VERIFY_FAILED although the browser and EWALD's own downloads work. Before mp-api is
 first imported the plugin therefore makes Python's ``ssl`` use the operating system's store
@@ -27,6 +32,9 @@ class MPSettings:
         SettingsField("api_key", "API key", kind="secret",
                       help=f"From {KEY_URL} (log in, then API key). Stored in the system keychain."),
         SettingsField("page_size", "Results per search", kind="int", default=25),
+        SettingsField("use_mp_api", "Use mp-api when it is installed", kind="bool", default=True, advanced=True,
+                      help="mp-api (pip install mp-api) adds relaxation trajectories and the newest band "
+                           "structures and DOS; without it EWALD talks to the Materials Project directly."),
         SettingsField("system_certificates", "Use the system certificate store", kind="bool", default=True,
                       advanced=True,
                       help="Trust the certificates your operating system trusts (needed behind proxies that "
@@ -85,8 +93,32 @@ def trust_system_store() -> bool:
     return True
 
 
+def has_mp_api() -> bool:
+    import importlib.util
+
+    try:
+        return importlib.util.find_spec("mp_api") is not None
+    except (ImportError, ValueError):
+        return False
+
+
+def backend() -> str:
+    """``"mp-api"`` when mp-api is installed and not turned off, else ``"rest"``."""
+    return "mp-api" if settings().get("use_mp_api", True) is not False and has_mp_api() else "rest"
+
+
 def rester():
-    """A new ``MPRester`` with the stored key (tests replace this function)."""
+    """A new client with the stored key (tests replace this function): an ``MPRester`` or a
+    :class:`ewald_mp.rest.Rester`, see :func:`backend`."""
+    if backend() == "rest":
+        from .rest import Rester, env_key
+
+        return Rester(api_key() or env_key())
+    return mp_api_rester()
+
+
+def mp_api_rester():
+    """A new ``mp_api`` ``MPRester`` with the stored key."""
     trust_system_store()
     try:
         from mp_api.client import MPRester
@@ -105,12 +137,16 @@ def rester():
 
 def call(fn):
     """``fn(mpr)`` with an open ``MPRester``; a refused key says where to set it."""
+    from .rest import NeedsMPApi
+
     mpr = rester()
     try:
         if hasattr(mpr, "__enter__"):
             with mpr:
                 return fn(mpr)
         return fn(mpr)
+    except (MPKeyError, NeedsMPApi, ConnectionError, ValueError):
+        raise
     except Exception as exc:  # noqa: BLE001
         text = str(exc)
         if _cert_error(text):

@@ -10,7 +10,7 @@
 ``chgcar``               the structure with the charge density grid (and magnetization)
 ``relax``                the relaxation trajectory, one frame per ionic step with forces and energy;
                          ``task=`` picks the task, else the material's structure optimization
-                         (r2SCAN, then GGA+U, then GGA)
+                         (r2SCAN, then GGA+U, then GGA); needs mp-api (``ewald-mp[full]``)
 """
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ def relax_task(mpr, material_id: str, run_type: str | None = None) -> str:
 
 
 class MPReader(FrameReader):
-    """Materials Project data by material id (mp-api, your API key): ``mp:mp-149`` the
+    """Materials Project data by material id (your API key): ``mp:mp-149`` the
     structure, ``mp:mp-149/bands``, ``/dos``, ``/electronic``, ``/chgcar``, ``/relax``,
     ``/initial``. Every frame carries ``attributes["Materials Project"]`` (id, view, task).
     Read once and kept in memory; read-only."""
@@ -105,6 +105,11 @@ class MPReader(FrameReader):
                 raise ValueError(f"the Materials Project has no charge density for {mid}")
             frames = [C.charge_density(chg)]
         elif what == "relax":
+            from .rest import FULL_HINT, NeedsMPApi, Rester
+
+            if isinstance(mpr, Rester):
+                raise NeedsMPApi(f"{self.path}: relaxation trajectories are only in MP's Delta tables, which "
+                                 f"mp-api reads; {FULL_HINT}")
             task = self.task or relax_task(mpr, mid, self.run_type)
             info["task_id"] = task
             frames = C.trajectory(mpr.materials.tasks.get_trajectory(task))
