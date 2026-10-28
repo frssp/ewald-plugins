@@ -61,7 +61,7 @@ def test_missing_key_says_where_to_set_it(monkeypatch):
     monkeypatch.setitem(sys.modules, "mp_api", types.ModuleType("mp_api"))
     monkeypatch.setitem(sys.modules, "mp_api.client", fake)
     with pytest.raises(client.MPKeyError, match="Preferences › Materials Project"):
-        client.rester()
+        client.mp_api_rester()
 
 
 # ------------------------------------------------------------------ against the stand-in
@@ -251,8 +251,8 @@ def test_system_store_is_used_before_mp_api(monkeypatch):
     monkeypatch.setattr(client, "_trust_injected", False)
     monkeypatch.setattr(truststore, "inject_into_ssl", lambda: order.append("inject"))
     _fake_mp_api(monkeypatch, order)
-    client.rester()
-    client.rester()
+    client.mp_api_rester()
+    client.mp_api_rester()
     assert order == ["inject", "MPRester", "MPRester"]          # once, and before mp-api connects
 
 
@@ -277,4 +277,4 @@ def test_certificate_error_says_what_to_do(monkeypatch):
                   "certificate verify failed: unable to get local issuer certificate')))")
     _fake_mp_api(monkeypatch, [], err)
     with pytest.raises(ConnectionError, match="system certificate store"):
-        client.rester()
+        client.mp_api_rester()
