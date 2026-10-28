@@ -1,7 +1,0 @@
-id = "optimade"
-display-name = "OPTIMADE structures"
-version = "0.1.0"
-publisher = "frssp"
-description = "Search and open structures of OPTIMADE databases (Materials Project, COD, OQMD, Alexandria, NOMAD, Materials Cloud, JARVIS, ...): load(\"optimade:mp/mp-149\"), search(\"Li-P-S\"), a search side bar and a read-only AI search tool. No API key."
-requires-ewald = ">=0.1"
-plugin-api = 1

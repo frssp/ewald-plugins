@@ -4,35 +4,15 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ewald-optimade"
-version = "0.1.0"
-description = "Open structures from OPTIMADE databases (Materials Project, COD, OQMD, Alexandria, NOMAD, Materials Cloud, ...) in EWALD: load(\"optimade:cod/1000041\")"
+version = "0.2.0"
+description = "Moved into EWALD (ewald.optimade, built in since 2026-10-28); this package only re-exports it"
 readme = "README.md"
 requires-python = ">=3.10"
-dependencies = ["ewald>=0.1", "numpy"]
+dependencies = ["ewald>=0.2"]
 
 [project.optional-dependencies]
 test = ["pytest"]
 
-[project.entry-points."ewald.plugins"]
-optimade = "ewald_optimade"
-
-[project.entry-points."ewald.readers"]
-optimade = "ewald_optimade.reader:OptimadeReader"
-
-[project.entry-points."ewald.panels"]
-optimade = "ewald_optimade.panel:optimade"
-
-[project.entry-points."ewald.settings_pages"]
-optimade = "ewald_optimade.providers:OptimadeSettings"
-
-[project.entry-points."ewald.tools"]
-optimade_search = "ewald_optimade.tools:optimade_search"
-
-[project.scripts]
-ewald-optimade = "ewald_optimade.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-ewald_optimade = ["ewald-plugin.toml"]

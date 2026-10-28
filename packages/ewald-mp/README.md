@@ -3,8 +3,8 @@
 The [Materials Project](https://next-gen.materialsproject.org) in EWALD through
 [mp-api](https://github.com/materialsproject/api), with your own API key. Besides structures it
 gives what MP's OPTIMADE endpoint does not: band structures, densities of states, charge
-densities and relaxation trajectories. For structures alone, without a key, the
-[ewald-optimade](../ewald-optimade) plugin is enough (`load("optimade:mp/mp-149")`).
+densities and relaxation trajectories. For structures alone, without a key, EWALD's built-in
+OPTIMADE support is enough (`load("optimade:mp/mp-149")`).
 
 ```bash
 pip install "ewald-mp @ git+https://github.com/frssp/ewald-plugins@<commit>#subdirectory=packages/ewald-mp"

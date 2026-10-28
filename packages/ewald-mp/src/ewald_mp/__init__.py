@@ -13,7 +13,7 @@ search("Li-P-S", is_stable=True)      # hits: uri, formula, energy above hull, b
 ```
 
 Set the key once under Preferences › Materials Project (kept in the system keychain). Structures
-alone need no key through the OPTIMADE plugin (``load("optimade:mp/mp-149")``).
+alone need no key through EWALD's built-in OPTIMADE support (``load("optimade:mp/mp-149")``).
 """
 __version__ = "0.1.1"
 
