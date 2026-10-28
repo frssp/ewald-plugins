@@ -74,38 +74,7 @@
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-mp",
-   "description": "Through mp-api (installed with it). Set your API key under Preferences > Materials Project; EWALD keeps it in the system keychain. load(\"mp:mp-149\") opens the structure; /bands, /dos and /electronic add the electronic structure, /chgcar the charge density, /relax the relaxation as frames. search(\"Li-P-S\", is_stable=True) lists materials with energy above hull and band gap; the side bar searches and opens; the AI gets a read-only mp_search tool. For structures without a key, use the OPTIMADE plugin."
-  },
-  {
-   "id": "npz_trajectory",
-   "name": "NumPy .npz trajectories",
-   "summary": "Reads trajectories stored as .npz archives (positions, types, cell, forces, energies)",
-   "kinds": [
-    "reader"
-   ],
-   "source": "https://raw.githubusercontent.com/frssp/ewald-plugins/46edbe1a12837581b92beece87bdd7c08bc4480a/examples/npz_trajectory.py",
-   "version": "0.1.0",
-   "requires_ewald": ">=0.1",
-   "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/examples",
-   "sha256": "88f24f8e348161ed1e53d91042bd93a536a0bce62578781db837df04e4922c7b"
-  },
-  {
-   "id": "optimade",
-   "name": "OPTIMADE structures",
-   "summary": "Search and open structures of Materials Project, COD, OQMD, Alexandria, NOMAD, Materials Cloud and other OPTIMADE databases: load(\"optimade:mp/mp-149\")",
-   "kinds": [
-    "reader",
-    "tool",
-    "panel",
-    "settings_page"
-   ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@bf090ab7c0e71fe00fe97bf4e094968b29de84bd#subdirectory=packages/ewald-optimade",
-   "version": "0.1.0",
-   "requires_ewald": ">=0.1",
-   "author": "frssp",
-   "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-optimade",
-   "description": "No account or API key. load(\"optimade:DB/ID\") opens one structure, load(\"optimade:DB?QUERY\") every structure a query finds (one frame each); a query is a formula (LiFePO4), a chemical system (Li-P-S), elements (Li P S) or an OPTIMADE filter. search() lists hits; the OPTIMADE side bar searches and opens; the AI gets a read-only optimade_search tool. More databases under Preferences > OPTIMADE."
+   "description": "Through mp-api (installed with it). Set your API key under Preferences > Materials Project; EWALD keeps it in the system keychain. load(\"mp:mp-149\") opens the structure; /bands, /dos and /electronic add the electronic structure, /chgcar the charge density, /relax the relaxation as frames. search(\"Li-P-S\", is_stable=True) lists materials with energy above hull and band gap; the side bar searches and opens; the AI gets a read-only mp_search tool. For structures without a key, use the OPTIMADE support built into EWALD (load(\"optimade:mp/mp-149\"))."
   },
   {
    "id": "phonopy",

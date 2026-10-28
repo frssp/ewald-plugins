@@ -1,27 +1,24 @@
-"""EWALD plugin: search and open structures of OPTIMADE databases (no account or key needed).
+"""Moved into EWALD: OPTIMADE support is built in since 2026-10-28 (``ewald.optimade``).
 
-```python
-from ewald import load
-from ewald_optimade import search
-
-pipe = load("optimade:mp/mp-149")          # Materials Project, Si
-pipe = load("optimade:cod/1000041")        # Crystallography Open Database
-pipe = load("optimade:oqmd?Li-P-S")        # every Li-P-S structure found (one frame each)
-search("LiFePO4", db="mp")                 # hits: uri, formula, nsites
-search('elements HAS ALL "Si","O" AND nsites<=6', db="cod")
-```
-
-Databases go by short names (:data:`providers.BUILTIN`: mp, cod, tcod, oqmd, alexandria, nomad,
-mc3d, mc2d, jarvis, odbx); more under Preferences › OPTIMADE. Every frame carries
-``attributes["OPTIMADE"]`` (database, id, formula, address). The OPTIMADE side bar searches and
-opens; the AI gets a read-only ``optimade_search`` tool.
+This package is kept so that ``from ewald_optimade import search`` and
+``import ewald_optimade.providers`` keep working; each name is the one in ``ewald.optimade``.
+It registers nothing (EWALD's built-in group "optimade" has the reader, side bar, AI tool and
+settings page), so it can be uninstalled: ``pip uninstall ewald-optimade``.
 """
-__version__ = "0.1.0"
+import importlib
+import sys
 
-from .providers import BUILTIN, Provider  # noqa: E402
-from .providers import providers as databases  # noqa: E402
-from .query import to_filter  # noqa: E402
-from .search import Hit, search  # noqa: E402
-from .uri import OptimadeURI, parse  # noqa: E402
+__version__ = "0.2.0"
 
-__all__ = ["BUILTIN", "Hit", "OptimadeURI", "Provider", "databases", "parse", "search", "to_filter"]
+try:
+    _core = importlib.import_module("ewald.optimade")
+except ImportError as exc:
+    raise ImportError("ewald-optimade 0.2 needs an EWALD with OPTIMADE built in (after 0.2.0, 2026-10-28): "
+                      "pip install -U ewald, or use ewald-optimade 0.1.0 with an older EWALD",
+                      name=__name__) from exc
+
+from ewald.optimade import *  # noqa: E402,F401,F403
+from ewald.optimade import __all__  # noqa: E402,F401
+
+for _name in ("client", "convert", "providers", "query", "reader", "search", "tools", "uri", "panel"):
+    sys.modules[f"{__name__}.{_name}"] = importlib.import_module(f"ewald.optimade.{_name}")
