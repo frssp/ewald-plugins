@@ -1,6 +1,6 @@
 id = "plumed"
 display-name = "PLUMED collective variables"
-version = "0.1.2"
+version = "0.1.3"
 publisher = "frssp"
 description = "Collective variables computed by PLUMED over a trajectory, COLVAR files, metadynamics HILLS free energy surfaces, and Claude tools for them"
 requires-ewald = ">=0.1"
