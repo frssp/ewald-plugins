@@ -43,6 +43,13 @@ _STRETCH_A = 1.00193418799744762399
 _STRETCH_B = -.00193418799744762399
 
 
+try:  # listed in Ask AI's API reference and found by its search (ewald after 0.2.0)
+    from ewald.plugin_api import api_function
+except ImportError:  # older ewald
+    def api_function(function):
+        return function
+
+
 # ----------------------------------------------------------------------------- the library
 class PlumedNotFound(RuntimeError):
     """The ``plumed`` package or the PLUMED kernel library is missing."""
@@ -351,6 +358,7 @@ def _referenced_files(text: str, base: Path) -> list[Path]:
 
 
 # ----------------------------------------------------------------------------- run
+@api_function
 def run(input: str, frames, *, steps=None, timestep: float = 1.0, temperature: float = 0.0,
         by_identifier: bool = True, per_atom: bool = True, workdir: str | os.PathLike | None = None,
         kernel: str | None = None) -> dict:
@@ -499,6 +507,7 @@ def _tail(path: Path, n: int = 40) -> str:
 
 
 # ----------------------------------------------------------------------------- files
+@api_function
 def read_colvar(path) -> dict:
     """Columns of a PLUMED COLVAR-style file as ``{field: array}``.
 
@@ -588,6 +597,7 @@ class Hills:
         return f"Hills(cvs={self.cvs}, n={len(self)})"
 
 
+@api_function
 def read_hills(path) -> Hills:
     """Read a HILLS file written by METAD (diagonal, non-multivariate hills)."""
     t = read_colvar(path)
@@ -605,6 +615,7 @@ def read_hills(path) -> Hills:
                  t["height"], t.get("biasf"), periods, c.get("kerneltype", "stretched-gaussian"), t.get("time"))
 
 
+@api_function
 def fes_from_hills(hills, bins=None, ranges=None, *, min_to_zero: bool = True, stride: int | None = None,
                    max_hills: int | None = None) -> dict:
     """Free energy surface from metadynamics hills, F(s) = -sum_i G_i(s), on a grid.
@@ -687,6 +698,7 @@ def _fes_table(cvs, axes, fes) -> dict:
     return table
 
 
+@api_function
 def sum_hills(hills, bins=None, ranges=None, *, min_to_zero: bool = True, workdir=None) -> dict:
     """Run ``plumed sum_hills`` on a HILLS file and read the result like :func:`fes_from_hills`.
 
@@ -716,6 +728,7 @@ def sum_hills(hills, bins=None, ranges=None, *, min_to_zero: bool = True, workdi
             shutil.rmtree(tmp, ignore_errors=True)
 
 
+@api_function
 def read_fes(path) -> dict:
     """A grid file written by ``plumed sum_hills`` (``fes.dat``) as ``{"cvs", "grid", "fes", "table"}``."""
     t = read_colvar(path)
@@ -733,6 +746,7 @@ def read_fes(path) -> dict:
     return {"cvs": cvs, "grid": axes, "fes": fes, "table": _fes_table(cvs, axes, fes)}
 
 
+@api_function
 def plot_fes(fes: dict, ax=None, *, levels: int = 20, cmap: str = "viridis", units: str = "kJ/mol"):
     """Draw a FES from :func:`fes_from_hills` / :func:`read_fes`: a curve for one CV, a filled
     contour map for two. Returns the matplotlib Axes."""
