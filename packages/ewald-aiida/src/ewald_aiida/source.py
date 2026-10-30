@@ -19,7 +19,7 @@ from ewald.plugin_api import (
     WorkflowStep,
 )
 
-from . import transport
+from . import archives, shape, transport
 from .uri import AiidaURI, parse
 
 _RESTART = re.compile(r"^iteration_\d+$")
@@ -129,18 +129,35 @@ def _step(d: dict, path: str, profile, base) -> WorkflowStep:
     return step
 
 
+def _facts(step, d: dict) -> None:
+    """Plain data a caller reads beyond what EWALD shows (set, not passed: EWALD's dataclasses
+    have no fields for them): ``extras``, and for a calculation ``files`` (retrieved),
+    ``inputs`` (:func:`ewald_aiida.export.calc_inputs`), ``shape`` (:mod:`ewald_aiida.shape`) and
+    ``calc_id`` / ``calc_uuid``, the PK and UUID of the CalcJob they were read from (a restart
+    step's last one; the UUID is the one that survives an archive's import elsewhere)."""
+    step.extras = dict(d.get("extras") or {})
+    step.calc_id = str(d["pk"]) if "inputs" in d else ""
+    step.calc_uuid = str(d.get("uuid") or "") if "inputs" in d else ""
+    step.files = list(d.get("files") or [])
+    step.inputs = dict(d.get("inputs") or {})
+    step.shape = shape.describe(step.inputs, step.files) if "inputs" in d else {}
+
+
 def _fill(step, d: dict, path: str, profile, base):
     """``step`` (the process ``d``, opened by ``path``) gets its outputs and called processes;
     a process that only restarted one calculation (``iteration_01``, ``iteration_02``, ...) is
     one step with ``runs``, as AiiDA's restart workchains run it."""
     step.path = path if d.get("view") else ""
     step.outputs = _outputs(d, path)
+    _facts(step, d)
     called = d.get("called") or []
     if called and all(_RESTART.match(c.get("call_label") or "") for c in called):
         last = called[-1]
         step.runs = len(called)
         step.work_dir = step.work_dir or last.get("work_dir") or ""
         step.scalars = {**(last.get("scalars") or {}), **step.scalars}
+        if "inputs" in last:     # the restarts are one step: its facts are the last run's
+            _facts(step, {**last, "extras": d.get("extras")})
         if not step.outputs:
             step.outputs = _outputs(last, f"{path}/{last['call_label']}")
         return
@@ -163,3 +180,13 @@ def workflow(d: dict, path: str, profile=None, base: AiidaURI | None = None) -> 
     formulas = [o.note for o in wf.outputs if o.kind == "structure" and o.note]
     wf.formula = formulas[-1] if formulas else ""
     return wf
+
+
+def open_archive(path) -> Workflow:
+    """The workflow in the AiiDA archive ``path`` (``.aiida``, e.g. from ``verdi archive create``
+    or a results server), opened read-only from EWALD's cache; its paths are
+    ``aiida:archive-<digest>/...`` and open like any other ``aiida:`` path."""
+    profile = archives.open_archive(path)
+    pk = archives.root(profile)
+    d = transport.describe(AiidaURI(pk, (), profile))
+    return workflow(d, str(AiidaURI(d.get("uuid") or pk, (), profile)), profile)

@@ -244,7 +244,7 @@ def test_exporter_runs_without_ewald():
     mods = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
     mods |= {n.module.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.level == 0}
     assert not any(isinstance(n, ast.ImportFrom) and n.level for n in ast.walk(tree))
-    assert mods <= {"__future__", "aiida", "argparse", "io", "json", "numpy", "os", "sys", "tempfile"}
+    assert mods <= {"__future__", "aiida", "argparse", "contextlib", "io", "json", "numpy", "os", "sys", "tempfile"}
 
 
 # ----------------------------------------------------------------------- workflow source
@@ -270,7 +270,8 @@ def test_workflow_source_lists_whole_workflows_and_describes_them(graph):
     assert ph.steps[2].outputs[0].note == "phonons"
     assert ph.steps[0].path.endswith("/generate_phonopy_data")
     nb = workflow.notebook_text(ph)
-    assert "generate_phonopy_data = load(" in nb and nb.rstrip().endswith(f"pipe = load('aiida:{graph['phonon_wf'].pk}')")
+    assert "generate_phonopy_data = load(" in nb and f"result = load('aiida:{graph['phonon_wf'].pk}')" in nb
+    assert nb.rstrip().endswith("pipe = result")     # EWALD's notebook: step variables, then pipe
     one = src.list()
     assert one.next is None
 
