@@ -8,12 +8,12 @@
    "kinds": [
     "reader"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@d37863378d6f9209d0bcc4466eb42e1ded1583b5#subdirectory=packages/ewald-aiida",
-   "version": "0.1.1",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@241f2799c2f56d0fc5e121b7ca963e249a5f4ec2#subdirectory=packages/ewald-aiida",
+   "version": "0.2.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-aiida",
-   "description": "Reads the AiiDA profile you use with verdi (local SQLite or PostgreSQL; no daemon or RabbitMQ), or one on another machine over SSH (aiida://user@host/1234; nothing installed there). A WorkChain or WorkGraph PK opens its trajectory (restarts joined), phonons, bands or structures; aiida-phonopy results become phonon modes through ewald-phonopy (pip install 'ewald-aiida[phonopy]'). python -m ewald_aiida tree/find browses the provenance graph. Read-only. Phonons need ewald-phonopy >= 0.2.1. Needs an EWALD with reader schemes (after 2026-10-19)."
+   "description": "Reads the AiiDA profile you use with verdi (local SQLite or PostgreSQL; no daemon or RabbitMQ), or one on another machine over SSH (aiida://user@host/1234; nothing installed there). A WorkChain or WorkGraph PK opens its trajectory (restarts joined), phonons, bands or structures; aiida-phonopy results become phonon modes through ewald-phonopy (pip install 'ewald-aiida[phonopy]'). python -m ewald_aiida tree/find browses the provenance graph. An AiiDA archive (.aiida) opens read-only without a database server (ewald_aiida.open_archive), and each step says what it computed (step.shape: relax/static/bands/dos/md/phonon with slab, potential, cell_relax, charged flags, from its inputs). Read-only. Phonons need ewald-phonopy >= 0.2.1. Needs an EWALD with reader schemes (after 2026-10-19)."
   },
   {
    "id": "cell_axes",
@@ -131,12 +131,12 @@
     "panel",
     "workflow_source"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-simagent@958a94abe1d3a6b9675f2f0e38421c93b378be96",
-   "version": "0.2.5",
+   "source": "pip:git+https://github.com/frssp/ewald-simagent@4f67ba4df32bfedef138d916eba49327ade1f853",
+   "version": "0.3.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-simagent",
-   "description": "Reads a sim-agent server's results API v1 with an access key made in its web UI (the key is kept in the OS keychain). A workflow opens as steps with their trajectories, structures and retrieved files; CHGCAR/LOCPOT and other files left on the cluster are read over SSH. Adds a sim-agent side bar (each calculation with the name of the chat that submitted it), the workflow AI tools and a Diagnose button (also `python -m ewald_simagent doctor`) that checks the connection step by step; a band-offset workflow opens with its potential lineup (VBM, CBM, E_F, Schottky barrier) and a work-function workflow with the work function of every slab, as notebook cells. Read-only: submitting stays in sim-agent. Needs a sim-agent with the results API and an EWALD with workflow sources (after 2026-10-20)."
+   "description": "Reads a sim-agent server's results API v1 with an access key made in its web UI (the key is kept in the OS keychain). A workflow opens as steps with their trajectories, structures and retrieved files; CHGCAR/LOCPOT and other files left on the cluster are read over SSH. Adds a sim-agent side bar (each calculation with the name of the chat that submitted it), the workflow AI tools and a Diagnose button (also `python -m ewald_simagent doctor`) that checks the connection step by step; a band-offset workflow opens with its potential lineup (VBM, CBM, E_F, Schottky barrier) and a work-function workflow with the work function of every slab, as notebook cells; the steps are found by what they computed (read from the workflow's metadata AiiDA archive through ewald-aiida), so new templates made of such steps get the analysis too. Read-only: submitting stays in sim-agent. Needs a sim-agent with the results API and an EWALD with workflow sources (after 2026-10-20)."
   }
  ]
 }
