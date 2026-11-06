@@ -8,8 +8,8 @@
    "kinds": [
     "reader"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-plugins@241f2799c2f56d0fc5e121b7ca963e249a5f4ec2#subdirectory=packages/ewald-aiida",
-   "version": "0.2.0",
+   "source": "pip:git+https://github.com/frssp/ewald-plugins@20f029b4a60dd371d26719c3e2bfd74523b8c6e2#subdirectory=packages/ewald-aiida",
+   "version": "0.3.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-plugins/tree/main/packages/ewald-aiida",
@@ -131,8 +131,8 @@
     "panel",
     "workflow_source"
    ],
-   "source": "pip:git+https://github.com/frssp/ewald-simagent@9c56131405b9c561e8fd02b9aca1efcf3473ab4b",
-   "version": "0.3.1",
+   "source": "pip:git+https://github.com/frssp/ewald-simagent@2b49c25ddaeecaaf0a2676e30e168a9067edd5fb",
+   "version": "0.4.0",
    "requires_ewald": ">=0.1",
    "author": "frssp",
    "homepage": "https://github.com/frssp/ewald-simagent",
