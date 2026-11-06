@@ -82,12 +82,14 @@ opens the same way and describes every step with its file names; `retrieved_file
 A described workflow's steps carry, besides what the side bar shows, plain data for analyses
 that look for steps by what they did rather than by their names: `step.inputs` (the code's
 parameters, for VASP the INCAR; the k-point mesh or path; the structure's formula, sites,
-volume, vacuum axis and extras; `parents`, the processes that made an input), `step.calc_id`
-and `step.calc_uuid` (the CalcJob they come from), `step.files` (retrieved),
+volume, vacuum axis and extras; `parents`, the processes that made an input, by PK and UUID),
+`step.uuid` (the CalcJob they come from), `step.files` (retrieved),
 `step.extras` and `step.shape` (`ewald_aiida.shape`): a `kind` (`relax`, `static`, `bands`,
 `dos`, `md`, `phonon`, from IBRION/NSW/ICHARG and the k-points) and `flags` (`cell_relax`,
 `slab`, `potential` for LVHAR or a planar average, `charged` for NELECT). A step of a code
-other than VASP gets kind `""`.
+other than VASP gets kind `""`. These are EWALD's own `WorkflowStep` fields, so they show in
+`describe_workflow` too. `ewald_aiida.structure_extras(wf, step)` gives the extras of a step's
+input structure completed by those of the structures it came from.
 
 ## In the GUI: the AiiDA side bar
 

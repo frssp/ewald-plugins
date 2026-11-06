@@ -119,7 +119,6 @@ def test_steps_carry_inputs_files_and_shape(vasp_wg):
 
 def test_structure_extras_follow_parents_by_uuid():
     from ewald.plugin_api import Workflow, WorkflowStep
-
     from ewald_aiida import structure_extras
 
     relax = WorkflowStep("relax", uuid="u-relax",
