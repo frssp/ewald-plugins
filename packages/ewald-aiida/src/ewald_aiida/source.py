@@ -130,17 +130,17 @@ def _step(d: dict, path: str, profile, base) -> WorkflowStep:
 
 
 def _facts(step, d: dict) -> None:
-    """Plain data a caller reads beyond what EWALD shows (set, not passed: EWALD's dataclasses
-    have no fields for them): ``extras``, and for a calculation ``files`` (retrieved),
-    ``inputs`` (:func:`ewald_aiida.export.calc_inputs`), ``shape`` (:mod:`ewald_aiida.shape`) and
-    ``calc_id`` / ``calc_uuid``, the PK and UUID of the CalcJob they were read from (a restart
-    step's last one; the UUID is the one that survives an archive's import elsewhere)."""
+    """What the step was run with, in EWALD's step fields: ``extras``, and for a calculation
+    ``files`` (retrieved), ``inputs`` (:func:`ewald_aiida.export.calc_inputs`), ``shape``
+    (:mod:`ewald_aiida.shape`) and ``uuid``, the UUID of the CalcJob they were read from (a
+    restart step's last one; the UUID survives an archive's import elsewhere, a PK does not).
+    Set as attributes, so an EWALD from before these were fields keeps them too."""
+    calc = "inputs" in d
     step.extras = dict(d.get("extras") or {})
-    step.calc_id = str(d["pk"]) if "inputs" in d else ""
-    step.calc_uuid = str(d.get("uuid") or "") if "inputs" in d else ""
+    step.uuid = str(d.get("uuid") or "") if calc else ""
     step.files = list(d.get("files") or [])
     step.inputs = dict(d.get("inputs") or {})
-    step.shape = shape.describe(step.inputs, step.files) if "inputs" in d else {}
+    step.shape = shape.describe(step.inputs, step.files) if calc else {}
 
 
 def _fill(step, d: dict, path: str, profile, base):
@@ -180,6 +180,24 @@ def workflow(d: dict, path: str, profile=None, base: AiidaURI | None = None) -> 
     formulas = [o.note for o in wf.outputs if o.kind == "structure" and o.note]
     wf.formula = formulas[-1] if formulas else ""
     return wf
+
+
+def structure_extras(wf, step, depth: int = 4) -> dict:
+    """The extras of ``step``'s input structure, completed by those of the structures it came
+    from in workflow ``wf`` (a static's structure is the relaxation's output, which has none of
+    its own; the parents are found by UUID among ``wf``'s steps)."""
+    by_uuid = {s.uuid: s for _, s in wf.walk() if getattr(s, "uuid", "")}
+
+    def up(st, left):
+        own = dict(((getattr(st, "inputs", None) or {}).get("structure") or {}).get("extras") or {})
+        if left:
+            for parent in (getattr(st, "inputs", None) or {}).get("parents") or []:
+                found = by_uuid.get(str(parent.get("uuid") or ""))
+                if found is not None and found is not st:
+                    own = {**up(found, left - 1), **own}
+        return own
+
+    return up(step, depth)
 
 
 def open_archive(path) -> Workflow:

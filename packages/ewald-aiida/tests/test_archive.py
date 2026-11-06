@@ -112,10 +112,25 @@ def test_steps_carry_inputs_files_and_shape(vasp_wg):
     assert static.files == ["locpot_planar_avg.json", "vasprun.xml"]
     assert static.inputs["kpoints"] == {"mesh": [8, 8, 1]}
     assert static.inputs["parameters"]["NELECT"] == 30        # unwrapped from "incar"
-    assert static.runs == 1 and static.calc_id == str(vasp_wg["static"].pk)
-    assert static.calc_uuid == vasp_wg["static"].uuid
+    assert static.runs == 1 and static.uuid == vasp_wg["static"].uuid
     assert static.inputs["structure"]["extras"] == {}
     assert wf.extras["sim_agent_template"] == "vasp_workfunction"
+
+
+def test_structure_extras_follow_parents_by_uuid():
+    from ewald.plugin_api import Workflow, WorkflowStep
+
+    from ewald_aiida import structure_extras
+
+    relax = WorkflowStep("relax", uuid="u-relax",
+                         inputs={"structure": {"extras": {"role": "film", "tag": "in"}}})
+    static = WorkflowStep("static", uuid="u-static",
+                          inputs={"structure": {"extras": {"tag": "own"}},
+                                  "parents": [{"pk": 1, "uuid": "u-relax", "via": "structure"},
+                                              {"pk": 2, "uuid": "elsewhere", "via": "x"}]})
+    wf = Workflow("wf", steps=[relax, static])
+    assert structure_extras(wf, static) == {"role": "film", "tag": "own"}   # its own win
+    assert structure_extras(wf, relax) == {"role": "film", "tag": "in"}
 
 
 OPEN = textwrap.dedent("""
@@ -195,7 +210,7 @@ def test_archive_without_file_contents_still_describes(vasp_wg, tmp_path):
         import ewald_aiida
         wf = ewald_aiida.open_archive(sys.argv[1])
         st = {s.name: s for _, s in wf.walk()}["slab_111_t1_static"]
-        print(json.dumps({"shape": st.shape, "files": st.files, "uuid": st.calc_uuid}))
+        print(json.dumps({"shape": st.shape, "files": st.files, "uuid": st.uuid}))
     """)
     env = {**os.environ, "EWALD_CACHE_DIR": str(tmp_path / "cache"), "AIIDA_PATH": str(tmp_path / "aiida")}
     out = _run(script, str(meta), env=env)
