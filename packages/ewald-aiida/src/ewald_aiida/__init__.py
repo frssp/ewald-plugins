@@ -20,15 +20,16 @@ trajectory, phonons, bands, structures, input that it has (:data:`VIEWS`). Every
 :mod:`ewald_aiida.export` reads the database (in this process, or on the remote host through
 SSH, sent as ``python -c``); it only reads, and needs no daemon or RabbitMQ. An archive
 (:mod:`ewald_aiida.archives`) is a profile of its own, ``aiida:archive-<digest>/NODE``. Each step
-of a described workflow carries ``inputs``, ``files`` and a ``shape`` (:mod:`ewald_aiida.shape`:
-what it computed, from its inputs) for analyses that find steps by what they did. :func:`tree` and
+of a described workflow carries ``uuid``, ``inputs``, ``files`` and a ``shape`` (:mod:`ewald_aiida.shape`:
+what it computed, from its inputs) for analyses that find steps by what they did;
+:func:`structure_extras` follows a step's structure up to the steps that made it. :func:`tree` and
 :func:`find` browse the provenance graph.
 """
 from .archives import retrieved_file
 from .browse import find, tree
 from .export import VIEWS
-from .source import open_archive
+from .source import open_archive, structure_extras
 from .uri import AiidaURI, parse
 
-__all__ = ["AiidaURI", "VIEWS", "find", "open_archive", "parse", "retrieved_file", "tree"]
-__version__ = "0.2.0"
+__all__ = ["AiidaURI", "VIEWS", "find", "open_archive", "parse", "retrieved_file", "structure_extras", "tree"]
+__version__ = "0.3.0"

@@ -572,7 +572,7 @@ def calc_inputs(calc):
     dictionary; for VASP the INCAR, also when it sits under an ``incar`` key), ``kpoints``
     (``{"mesh": [...]}`` or ``{"path": n}`` for an explicit list), ``structure`` (formula, sites,
     volume in Å³, ``vacuum_axis``, ``extras``) and ``parents``: the processes of the same provenance that
-    made an input (``{"pk", "via"}``), so the steps can be read as a graph."""
+    made an input (``{"pk", "uuid", "via"}``), so the steps can be read as a graph."""
     from aiida import orm
     from aiida.common.links import LinkType
 
@@ -593,7 +593,8 @@ def calc_inputs(calc):
                                 "vacuum_axis": _vacuum_axis(node), "extras": _extras(node)}
         creator = node.base.links.get_incoming(link_type=LinkType.CREATE).all()
         if creator and creator[0].node.pk != calc.pk:
-            out.setdefault("parents", []).append({"pk": creator[0].node.pk, "via": label})
+            out.setdefault("parents", []).append({"pk": creator[0].node.pk, "uuid": creator[0].node.uuid,
+                                                  "via": label})
     return out
 
 
